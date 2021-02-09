@@ -43,11 +43,10 @@ public class FragmentSecond extends Fragment {
         scholarship.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("장학금, 학자금");
-//                팝업 사용할 시
-//                Intent intent = new Intent(getActivity(), PopupActivity.class);
-//                intent.putExtra("data", "TEST");
-//                startActivityForResult(intent, 1);
+                mainActivity.chatInitialize("Press scholarship button");
+                Intent intent = new Intent(getActivity(), PopupActivity2.class);
+                intent.putExtra("text", getString(R.string.scholarship));
+                startActivity(intent);
             }
         });
 
@@ -55,7 +54,11 @@ public class FragmentSecond extends Fragment {
         graduation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("휴학, 복학, 졸업");
+                mainActivity.chatInitialize("Press graduation button");
+                Intent intent = new Intent(getActivity(), PopupActivity.class);
+                intent.putExtra("teacher", getString(R.string.sonsy));
+                intent.putExtra("text", getString(R.string.graduation));
+                getActivity().startActivityForResult(intent, 1);
             }
         });
 
@@ -63,7 +66,10 @@ public class FragmentSecond extends Fragment {
         locker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("출입등록, 사물함");
+                mainActivity.chatInitialize("Press locker button");
+                Intent intent = new Intent(getActivity(), PopupActivity2.class);
+                intent.putExtra("text", getString(R.string.locker));
+                startActivity(intent);
             }
         });
 
@@ -71,7 +77,11 @@ public class FragmentSecond extends Fragment {
         grade.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("성적, 강의평가");
+                mainActivity.chatInitialize("Press grade button");
+                Intent intent = new Intent(getActivity(), PopupActivity.class);
+                intent.putExtra("teacher", getString(R.string.yooey));
+                intent.putExtra("text", getString(R.string.grade));
+                getActivity().startActivityForResult(intent, 1);
             }
         });
 
@@ -79,23 +89,35 @@ public class FragmentSecond extends Fragment {
         apply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("수강신청, 수강취소");
+                mainActivity.chatInitialize("Press apply button");
+                Intent intent = new Intent(getActivity(), PopupActivity.class);
+                intent.putExtra("teacher", getString(R.string.yooey));
+                intent.putExtra("text", getString(R.string.apply));
+                getActivity().startActivityForResult(intent, 1);
             }
         });
 
-        final Button doublemajor = (Button) getView().findViewById(R.id.doublemajor_btn);
-        doublemajor.setOnClickListener(new View.OnClickListener() {
+        final Button curriculum = (Button) getView().findViewById(R.id.curriculum_btn);
+        curriculum.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("복수전공, 부전공");
+                mainActivity.chatInitialize("Press curriculum button");
+                Intent intent = new Intent(getActivity(), PopupActivity.class);
+                intent.putExtra("teacher", getString(R.string.yooey));
+                intent.putExtra("text", getString(R.string.curriculum));
+                getActivity().startActivityForResult(intent, 1);
             }
         });
 
-        final Button inout = (Button) getView().findViewById(R.id.inout_btn);
-        inout.setOnClickListener(new View.OnClickListener() {
+        final Button lab = (Button) getView().findViewById(R.id.lab_btn);
+        lab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("전입, 전출");
+                mainActivity.chatInitialize("Press lab button");
+                Intent intent = new Intent(getActivity(), PopupActivity.class);
+                intent.putExtra("teacher", getString(R.string.kimma));
+                intent.putExtra("text", getString(R.string.lab));
+                getActivity().startActivityForResult(intent, 1);
             }
         });
 
@@ -103,7 +125,10 @@ public class FragmentSecond extends Fragment {
         certificate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("증명서 발급");
+                mainActivity.chatInitialize("Press certificate button");
+                Intent intent = new Intent(getActivity(), PopupActivity2.class);
+                intent.putExtra("text", "증명서 발급은 행정실 입구 오른쪽에 있는 노트북을 사용해주세요.\n마이스누 - 학사정보 - 증명/확인서 탭에서 발급 받으실 수 있습니다.");
+                startActivity(intent);
             }
         });
     }

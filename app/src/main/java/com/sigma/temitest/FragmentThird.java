@@ -51,19 +51,19 @@ public class FragmentThird extends Fragment {
             }
         });
 
-        final Button lab = (Button) getView().findViewById(R.id.lab_btn);
-        lab.setOnClickListener(new View.OnClickListener() {
+        final Button doublemajor = (Button) getView().findViewById(R.id.doublemajor_btn);
+        doublemajor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("실험실, 기자재");
+                mainActivity.chatInitialize("복수전공, 부전공");
             }
         });
 
-        final Button curriculum = (Button) getView().findViewById(R.id.curriculum_btn);
-        curriculum.setOnClickListener(new View.OnClickListener() {
+        final Button inout = (Button) getView().findViewById(R.id.inout_btn);
+        inout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("수업");
+                mainActivity.chatInitialize("전입, 전출");
             }
         });
 

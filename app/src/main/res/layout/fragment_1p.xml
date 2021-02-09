@@ -34,6 +34,40 @@
                     android:textColor="@color/text_color"
                     android:background="@drawable/custom_button_selector"
                     />
+                <Button
+                    android:id="@+id/building_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:paddingBottom="15dp"
+                    android:paddingTop="15dp"
+                    android:paddingHorizontal="20dp"
+                    android:drawableTop="@drawable/building_top"
+                    android:drawablePadding="20dp"
+                    android:drawableTint="#8B00FF"
+                    android:fontFamily="@font/nanumsquare_bold"
+                    android:text="주요 시설·연락처"
+                    android:textSize="20sp"
+                    android:textColor="@color/text_color"
+                    android:background="@drawable/custom_button_selector"
+                    />
+                <Button
+                    android:id="@+id/map_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:paddingBottom="15dp"
+                    android:paddingTop="15dp"
+                    android:paddingHorizontal="40dp"
+                    android:drawableTop="@drawable/map_top"
+                    android:drawablePadding="20dp"
+                    android:drawableTint="#8B00FF"
+                    android:fontFamily="@font/nanumsquare_bold"
+                    android:text="학교 지도"
+                    android:textSize="20sp"
+                    android:textColor="@color/text_color"
+                    android:background="@drawable/custom_button_selector"
+                    />
             </TableRow>
         </TableLayout>
     </RelativeLayout>

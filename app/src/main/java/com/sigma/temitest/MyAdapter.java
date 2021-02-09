@@ -19,7 +19,7 @@ public class MyAdapter extends FragmentStateAdapter {
     public Fragment createFragment(int position) {
         int index = getRealPosition(position);
         if(index==0) return new FragmentSecond();
-        else if(index==1) return new FragmentThird();
+//        else if(index==1) return new FragmentThird();
         else return new FragmentFirst();
     }
 

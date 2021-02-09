@@ -1,6 +1,5 @@
 package com.sigma.temitest;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,43 +10,28 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class PopupActivity extends AppCompatActivity {
+public class PopupActivity2 extends AppCompatActivity {
 
     private static final String TAG = "PopupActivity";
-    TextView popupText;
-
+    TextView popupText2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //타이틀바 없애기
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.popup_activity);
+        setContentView(R.layout.popup_activity2);
 
         //UI 객체생성
-        popupText = (TextView)findViewById(R.id.popupText);
+        popupText2 = (TextView)findViewById(R.id.popupText2);
 
         //데이터 가져오기
         String text = getIntent().getStringExtra("text");
-        popupText.setText(text);
+        popupText2.setText(text);
     }
 
     //확인 버튼 클릭
-    public void Yes(View v){
-        //데이터 전달하기
-        Log.d(TAG, "Yes: Press Yes Btn");
-        String teacher = getIntent().getStringExtra("teacher");
-        Log.d(TAG, "Yes: teacher - " + teacher);
-        Intent intent = new Intent();
-        intent.putExtra("teacher", teacher);
-        intent.putExtra("result", "Yes");
-        setResult(RESULT_OK, intent);
-
-        //액티비티(팝업) 닫기
-        finish();
-    }
-
-    public void No(View v){
+    public void Ok(View v){
         Log.d(TAG, "No: Press No Btn");
         finish();
     }

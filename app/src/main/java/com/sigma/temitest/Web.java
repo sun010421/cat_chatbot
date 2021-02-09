@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class Web extends AppCompatActivity {
     private WebView webView;
+    private String url;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -29,13 +30,15 @@ public class Web extends AppCompatActivity {
             }
         });
 
+        url = getIntent().getStringExtra("url");
+
         webView = (WebView) findViewById(R.id.webView);
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.loadUrl("https://ee.snu.ac.kr/");
+        webView.loadUrl(url);
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClientClass());
-//        webView.getSettings().setSupportZoom(true);
-//        webView.getSettings().setBuiltInZoomControls(true);
+        webView.getSettings().setSupportZoom(true);
+        webView.getSettings().setBuiltInZoomControls(true);
     }
 
     @Override

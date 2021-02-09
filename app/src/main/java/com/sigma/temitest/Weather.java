@@ -29,7 +29,7 @@ public class Weather extends AppCompatActivity {
 
         webView = (WebView) findViewById(R.id.webView);
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.loadUrl("https://www.google.com/search?q=%EB%82%A0%EC%94%A8&oq=%EB%82%A0%EC%94%A8&aqs=chrome..69i57j35i39j0i131i395i433l3j69i61l3.1061j1j4&sourceid=chrome&ie=UTF-8");
+        webView.loadUrl("https://weather.naver.com/today/09620735");
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClientClass());
     }

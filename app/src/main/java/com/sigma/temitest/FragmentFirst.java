@@ -40,7 +40,29 @@ public class FragmentFirst extends Fragment {
         homepage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getActivity(), Web.class));
+                Intent intent = new Intent(getActivity(), Web.class);
+                intent.putExtra("url", "https://ee.snu.ac.kr/");
+                startActivity(intent);
+            }
+        });
+
+        final Button building = (Button) getView().findViewById(R.id.building_btn);
+        building.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), Web.class);
+                intent.putExtra("url", "https://ee.snu.ac.kr/about/contact#tel1");
+                startActivity(intent);
+            }
+        });
+
+        final Button map = (Button) getView().findViewById(R.id.map_btn);
+        map.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), Web.class);
+                intent.putExtra("url", "http://map.snu.ac.kr/web/main.action");
+                startActivity(intent);
             }
         });
 

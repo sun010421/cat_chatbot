@@ -57,6 +57,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -64,6 +65,8 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 
+import com.robotemi.sdk.face.ContactModel;
+import com.robotemi.sdk.face.OnFaceRecognizedListener;
 import com.robotemi.sdk.listeners.OnBatteryStatusChangedListener;
 import com.robotemi.sdk.listeners.OnConversationStatusChangedListener;
 import com.robotemi.sdk.listeners.OnDetectionStateChangedListener;
@@ -83,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements
         OnConversationStatusChangedListener,
         OnUserInteractionChangedListener,
         OnGoToLocationStatusChangedListener,
+        OnFaceRecognizedListener,
         OnBatteryStatusChangedListener {
 
     private boolean whileTalking; // 사용자와 대화 중인지.
@@ -103,18 +107,19 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = MainActivity.class.getSimpleName();
     private String uuid = UUID.randomUUID().toString();
 
-    private static final String[] teacherAt319_Name = new String[]{"김테미"}; // 행정실(319호)에 계시는 선생님들 성함.
+    private final String[] teacherAt319_Name = getResources().getStringArray(R.array.teachers_name);
     private int indexOfTeacher; // 테미가 안내해주려는 선생님이 배열에서 몇번째인지 나타냄.
 
     Button bar; // 대화시 나타나는 초록색 막대
     ImageView mic;  // User가 말할 때 나타나는 마이크 모양 아이콘
     TextView asr;   // User의 음성 입력 텍스트
     TextView tts;   // 테미의 음성 출력 텍스트
+    TextView notice;
 
     //    ViewPager 관련 변수 선언
     private ViewPager2 mPager;
     private FragmentStateAdapter pagerAdapter;
-    private int num_page = 3;
+    private int num_page = 2;
     private CircleIndicator3 mIndicator;
 
     @Override
@@ -127,6 +132,7 @@ public class MainActivity extends AppCompatActivity implements
         Robot.getInstance().addOnGoToLocationStatusChangedListener(this);
         Robot.getInstance().addOnUserInteractionChangedListener(this);
         Robot.getInstance().addOnBatteryStatusChangedListener(this);
+        Robot.getInstance().addOnFaceRecognizedListener(this);
     }
 
     @Override
@@ -139,6 +145,17 @@ public class MainActivity extends AppCompatActivity implements
         Robot.getInstance().removeOnGoToLocationStatusChangedListener(this);
         Robot.getInstance().removeOnUserInteractionChangedListener(this);
         Robot.getInstance().removeOnBatteryStatusChangedListener(this);
+        Robot.getInstance().removeOnFaceRecognizedListener(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+//        Log.d(TAG, "onPause");
+//        bar.setVisibility(View.INVISIBLE);
+//        mic.setVisibility(View.INVISIBLE);
+//        asr.setText("");
+//        tts.setText("");
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -151,12 +168,15 @@ public class MainActivity extends AppCompatActivity implements
         robot = Robot.getInstance(); // get an instance of the robot in order to begin using its features.
         initV2Chatbot();
 
+        robot.startFaceRecognition();
+
         whileTalking = false;
         moving = false;
         atStandby = true; // 처음 앱이 실행되면, 위치와 관계 없이 사용자를 감지
 
         asr = (TextView) findViewById(R.id.asr);
         tts = (TextView) findViewById(R.id.tts);
+        notice = (TextView) findViewById(R.id.notice);
         bar = (Button) findViewById(R.id.speak_bar);
         mic = (ImageView) findViewById(R.id.mic);
         bar.setVisibility(View.INVISIBLE);
@@ -188,11 +208,24 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
+        ImageButton standbyButton = findViewById(R.id.standby_btn); // 행정실 입구로 이동 버튼
+        standbyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                robot.speak(TtsRequest.create("행정실 입구로 이동합니다.", true));
+                robot.goTo("행정실 입구");
+            }
+        });
+
         Button stop_talking = findViewById(R.id.stop_talking_btn); // 음성/대화 중지 버튼
         stop_talking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 robot.finishConversation();
+                bar.setVisibility(View.INVISIBLE);
+                mic.setVisibility(View.INVISIBLE);
+                asr.setText("");
+                tts.setText("");
             }
         });
 
@@ -207,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements
         mIndicator.createIndicators(num_page,0);
         //ViewPager Setting
         mPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
-        mPager.setCurrentItem(999);
+        mPager.setCurrentItem(1000);
         mPager.setOffscreenPageLimit(3);
 
         mPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -245,6 +278,23 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @androidx.annotation.Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==1){
+            if(resultCode==RESULT_OK){
+                //데이터 받기
+                String teacher = data.getStringExtra("teacher");
+                String result = data.getStringExtra("result");
+                if(result.equals("Yes")) {
+                    Log.d(TAG, "onActivityResult: goTo " + teacher);
+                    robot.speak(TtsRequest.create(teacher + " 자리로 이동합니다.", true));
+                    robot.goTo(teacher);
+                }
+            }
+        }
     }
 
     private void initV2Chatbot() {
@@ -305,13 +355,18 @@ public class MainActivity extends AppCompatActivity implements
 
             // 테미가 이동하는 경우.
             if (intentName.equals("MoveTemi-Yes")){
-                robot.speak(TtsRequest.create(botReply, true));
+                robot.speak(TtsRequest.create(teacherAt319_Name[indexOfTeacher] + " 선생님 자리로 " + botReply, true));
                 robot.goTo(teacherAt319_Name[indexOfTeacher] + " 선생님");
             }
 
-            else if (botReply.equals("홈베이스로 가겠습니다.")) {
+            else if (botReply.contains("홈베이스")) {
                 robot.speak(TtsRequest.create(botReply, true));
                 robot.goTo("home base");
+            }
+
+            else if (botReply.contains("행정실 입구")) {
+                robot.speak(TtsRequest.create(botReply, true));
+                robot.goTo("행정실 입구");
             }
 
             else if (botReply.equals("체온 측정")) { // 체온 측정하는 코드, Dialogflow에서 'Temperature_Check' 인텐트에 의한 리스폰스
@@ -320,15 +375,22 @@ public class MainActivity extends AppCompatActivity implements
 
             else if (botReply.contains("날씨")){
                 robot.speak(TtsRequest.create("날씨 정보를 알려드립니다.", true));
-                startActivity(new Intent(MainActivity.this, Weather.class));
+                Intent intent = new Intent(MainActivity.this, Web.class);
+                intent.putExtra("url", "https://weather.naver.com/today/09620735");
+                startActivity(intent);
+//                startActivity(new Intent(MainActivity.this, Weather.class));
             }
 
             // 그 이외는 Dialogflow 답변을 그대로 읽어줌. 물음표 여부를 통해서 다음 대답을 받을지 판단 (추가적인 context로 추후 구분 가능성).
             else {
                 if (botReply.contains("?"))
                     robot.askQuestion(botReply);
-                else
-                    robot.speak(TtsRequest.create(botReply, true));
+                else {
+                    if (botReply.contains("button"))
+                        return;
+                    else
+                        robot.speak(TtsRequest.create(botReply, true));
+                }
             }
         } else {
             //Log.d(TAG, "Bot Reply: Null");
@@ -404,7 +466,7 @@ public class MainActivity extends AppCompatActivity implements
     // 0 - IDLE, 1 - LOST, 2 - ACTIVE.
     @Override
     public void onDetectionStateChanged(int state) {
-
+//        Log.d(TAG, "onDetectionStateChanged: " + state);
         if(state == DETECTED) detected = true;
         else if(state == OnDetectionStateChangedListener.IDLE) detected = false;
 
@@ -415,7 +477,7 @@ public class MainActivity extends AppCompatActivity implements
             // 대기 상태에 있으며, 대화를 하고 있지 않았을때만 인사한다.
             if (!whileTalking && atStandby) {
 //                Log.d(TAG, "New user detected at standby.");
-                robot.askQuestion("전기정보공학부 행정실에 무슨 일로 오셨나요?");
+                chatInitialize("greeting");
             }
         }
         prev_state = state;
@@ -425,22 +487,26 @@ public class MainActivity extends AppCompatActivity implements
     public void onConversationStatusChanged(int status, @NotNull String text) { //https://github.com/robotemi/sdk/wiki/Speech 참고
 
         if (status == 0) {  // "대화가 끝났을 때"
+            Log.d(TAG, "onConvStatusChanged " + status);
             whileTalking = false;
             bar.setVisibility(View.INVISIBLE);
             mic.setVisibility(View.INVISIBLE);
+            notice.setVisibility(View.VISIBLE);
+            asr.setText("");
+            tts.setText("");
 
             // 만약 모든 상호작용이 끝났고, 대기 장소나 홈 베이스가 아니면.
             if (!moving && !atStandby && !atHome) {
-                Log.d(TAG, "Countdown Started.");
+//                Log.d(TAG, "Countdown Started.");
 
                 // 10초 countdown, 0.4초마다 tick 확인.
-                new CountDownTimer(10000, 400) {
+                new CountDownTimer(5000, 400) {
                     @Override
                     public void onTick(long millisUntilFinished) {
                         // 새로운 interaction이 시작되거나 대기 장소, 홈 베이스가 되면 취소.
                         if (whileTalking || moving || atStandby || atHome) {
                             cancel();
-                            Log.d(TAG, "Countdown canceled because of new interaction.");
+//                            Log.d(TAG, "Countdown canceled because of new interaction.");
                         }
                     }
                     @Override
@@ -455,6 +521,8 @@ public class MainActivity extends AppCompatActivity implements
 
         if (status == 1) {  // Listening user's voice
             whileTalking = true;
+            notice.setVisibility(View.INVISIBLE);
+            asr.setText("");
             mic.setVisibility(View.VISIBLE);
             bar.setVisibility(View.VISIBLE);
             asr.setText(text);
@@ -467,8 +535,10 @@ public class MainActivity extends AppCompatActivity implements
         if (status == 3) {  // Playing TTS
             Log.d(TAG, "onConvStatusChanged " + status + ": " + text);
             whileTalking = true;
+            notice.setVisibility(View.INVISIBLE);
+            asr.setText("");
             mic.setVisibility(View.INVISIBLE);
-            bar.setVisibility(View.VISIBLE);
+            bar.setVisibility(View.INVISIBLE);
             tts.setText(text);
         }
     }
@@ -478,6 +548,8 @@ public class MainActivity extends AppCompatActivity implements
     public void onGoToLocationStatusChanged(@NotNull String location, @NotNull String status, int descriptionID, @NotNull String description) { //https://github.com/robotemi/sdk/wiki/Locations 참고
         atStandby = false; // 일단 뭔가 status 변화가 있으면, 인사 안하도록.
         atHome = false; // 이동 상태가 변하면 대기 장소나 홈 베이스에서 벗어나게 됨
+//        robot.setDetectionModeOn(false);
+//        robot.stopFaceRecognition();
 //        Log.d(TAG, "atStandby is false");
 
         if (status.equals(OnGoToLocationStatusChangedListener.START)) moving = true;
@@ -488,6 +560,8 @@ public class MainActivity extends AppCompatActivity implements
             // Standby에 도착한 경우, 다시 인사 하도록 변수 설정.
             if (location.equals("행정실 입구")) {
                 atStandby = true;
+//                robot.setDetectionModeOn(true);
+//                robot.startFaceRecognition();
 //                Log.d(TAG, "atStandby is true");
             }
 
@@ -538,10 +612,16 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onBatteryStatusChanged(@Nullable BatteryData batteryData) { // 배터리 효율이 안좋아서 사용할 일 없을듯
-        Log.d(TAG, "onBatteryStatusChanged: " + batteryData);
-        if (batteryData.component2() == true && batteryData.component1() == 100) {
-            robot.speak(TtsRequest.create("충전이 완료되었습니다.", true));
-            robot.goTo("행정실 입구");
-        }
+//        Log.d(TAG, "onBatteryStatusChanged: " + batteryData);
+//        if (batteryData.component2() == true && batteryData.component1() == 100) {
+//            robot.speak(TtsRequest.create("충전이 완료되었습니다.", true));
+//            robot.goTo("행정실 입구");
+//        }
+    }
+
+    @Override
+    public void onFaceRecognized(@Nullable List<ContactModel> list) {
+        Log.d(TAG, "onFaceRecognized: " + list);
+
     }
 }

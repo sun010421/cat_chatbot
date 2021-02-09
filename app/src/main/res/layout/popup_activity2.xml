@@ -4,16 +4,14 @@
     android:background="@drawable/rounded"
     android:orientation="vertical"
     android:layout_width="1000dp"
-    android:layout_height="300dp"
-    >
+    android:layout_height="300dp">
 
     <!-- Notice -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="230dp"
-        >
+        android:layout_height="230dp">
         <TextView
-            android:id="@+id/popupText"
+            android:id="@+id/popupText2"
             android:textSize="25sp"
             android:textColor="#000"
             android:fontFamily="@font/nanumsquare_bold"
@@ -32,29 +30,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <Button
-            android:id="@+id/yes_btn"
-            android:text="네"
+            android:id="@+id/ok_btn"
+            android:text="확인"
             android:textSize="20sp"
             android:textColor="#000"
             android:fontFamily="@font/nanumsquare_bold"
             android:gravity="center"
-            android:background="@drawable/popup_button_left"
+            android:background="@drawable/popup_button_center"
             android:layout_width="match_parent"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:onClick="Yes"/>
-        <Button
-            android:id="@+id/no_btn"
-            android:text="아니요"
-            android:textSize="20sp"
-            android:textColor="#000"
-            android:fontFamily="@font/nanumsquare_bold"
-            android:gravity="center"
-            android:background="@drawable/popup_button_right"
-            android:layout_width="match_parent"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:onClick="No"/>
+            android:onClick="Ok"/>
     </LinearLayout>
     <!--// 닫기 버튼 -->
 </LinearLayout>

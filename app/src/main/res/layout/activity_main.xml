@@ -7,10 +7,18 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <ImageButton
+        android:layout_marginTop="10dp"
+        android:id="@+id/standby_btn"
+        android:layout_marginLeft="20dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:src="@drawable/work_top"
+        android:tint="#8B00FF"
+        android:background="@drawable/home_button_selector" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="70dp"
         android:gravity="center">
         <Button
             android:id="@+id/reinit"
@@ -70,27 +78,28 @@
     <TextView
         android:id="@+id/tts"
         android:layout_width="900dp"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:fontFamily="@font/nanumsquare_bold"
         android:textSize="25sp"
         android:textColor="@color/black"
         android:layout_gravity="center"
         android:gravity="center" />
     <TextView
+        android:id="@+id/notice"
         android:layout_marginTop="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/nanumsquare_bold"
         android:gravity="center"
         android:text="'헤이 테미'로 대화를 시작하거나 원하시는 메뉴를 선택하세요"
-        android:textSize="20sp"
+        android:textSize="25sp"
         android:textColor="@color/black"
         android:layout_gravity="center" />
 
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="@dimen/frameSize"
-        android:layout_marginTop="30dp">
+        android:layout_marginTop="10dp">
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewpager"
             android:clipToPadding="false"
@@ -102,7 +111,7 @@
     <me.relex.circleindicator.CircleIndicator3
         android:id="@+id/indicator"
         android:layout_width="match_parent"
-        android:layout_height="60dp" />
+        android:layout_height="40dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
