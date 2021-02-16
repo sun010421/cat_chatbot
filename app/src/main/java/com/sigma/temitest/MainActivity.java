@@ -12,6 +12,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.media.Image;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -107,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = MainActivity.class.getSimpleName();
     private String uuid = UUID.randomUUID().toString();
 
-    private final String[] teacherAt319_Name = getResources().getStringArray(R.array.teachers_name);
+    private String[] teacherAt319_Name;
     private int indexOfTeacher; // 테미가 안내해주려는 선생님이 배열에서 몇번째인지 나타냄.
 
     Button bar; // 대화시 나타나는 초록색 막대
@@ -148,25 +149,18 @@ public class MainActivity extends AppCompatActivity implements
         Robot.getInstance().removeOnFaceRecognizedListener(this);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-//        Log.d(TAG, "onPause");
-//        bar.setVisibility(View.INVISIBLE);
-//        mic.setVisibility(View.INVISIBLE);
-//        asr.setText("");
-//        tts.setText("");
-    }
-
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
         robot = Robot.getInstance(); // get an instance of the robot in order to begin using its features.
         initV2Chatbot();
+
+        Resources resources = getResources();
+        if(resources.getStringArray(R.array.teachers_name) != null)
+            teacherAt319_Name = resources.getStringArray(R.array.teachers_name);
 
         robot.startFaceRecognition();
 
@@ -181,6 +175,24 @@ public class MainActivity extends AppCompatActivity implements
         mic = (ImageView) findViewById(R.id.mic);
         bar.setVisibility(View.INVISIBLE);
         mic.setVisibility(View.INVISIBLE);
+
+        Button english_btn = findViewById(R.id.english_btn);    // 영어 버튼
+        english_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LocaleHelper.setLocale(MainActivity.this, "en");
+                recreate();
+            }
+        });
+
+        Button korean_btn = findViewById(R.id.korean_btn);  // 한국어 버튼
+        korean_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LocaleHelper.setLocale(MainActivity.this, "ko");
+                recreate();
+            }
+        });
 
         Button reinitButton = findViewById(R.id.reinit); // 대화 시작 버튼
         reinitButton.setOnClickListener(new View.OnClickListener() {
@@ -406,7 +418,7 @@ public class MainActivity extends AppCompatActivity implements
         int port = 5001;
 
         try{
-            Socket sock = new Socket("192.168.0.6", port);
+            Socket sock = new Socket("192.168.0.56", port);
 
             ObjectOutputStream outstream = new ObjectOutputStream(sock.getOutputStream());
             outstream.writeObject(data);

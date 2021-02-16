@@ -31,7 +31,7 @@
         android:layout_height="match_parent">
         <Button
             android:id="@+id/ok_btn"
-            android:text="확인"
+            android:text="@string/Ok"
             android:textSize="20sp"
             android:textColor="#000"
             android:fontFamily="@font/nanumsquare_bold"

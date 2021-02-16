@@ -33,7 +33,7 @@
         android:layout_height="match_parent">
         <Button
             android:id="@+id/yes_btn"
-            android:text="네"
+            android:text="@string/Yes"
             android:textSize="20sp"
             android:textColor="#000"
             android:fontFamily="@font/nanumsquare_bold"
@@ -45,7 +45,7 @@
             android:onClick="Yes"/>
         <Button
             android:id="@+id/no_btn"
-            android:text="아니요"
+            android:text="@string/No"
             android:textSize="20sp"
             android:textColor="#000"
             android:fontFamily="@font/nanumsquare_bold"
