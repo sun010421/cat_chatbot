@@ -9,15 +9,22 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.media.Image;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.text.method.ScrollingMovementMethod;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -40,7 +47,6 @@ import com.google.cloud.dialogflow.v2.SessionName;
 import com.google.cloud.dialogflow.v2.SessionsClient;
 import com.google.cloud.dialogflow.v2.SessionsSettings;
 import com.google.cloud.dialogflow.v2.TextInput;
-import com.google.cloud.dialogflow.v2.Context;
 import com.google.cloud.dialogflow.v2.QueryResult;
 
 import com.robotemi.sdk.BatteryData;
@@ -59,6 +65,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -79,6 +86,7 @@ import com.robotemi.sdk.navigation.listener.OnDistanceToLocationChangedListener;
 import me.relex.circleindicator.CircleIndicator3;
 
 import static android.provider.Contacts.PresenceColumns.IDLE;
+import static android.speech.tts.TextToSpeech.ERROR;
 
 public class MainActivity extends AppCompatActivity implements
         Robot.AsrListener,
@@ -98,6 +106,10 @@ public class MainActivity extends AppCompatActivity implements
     private boolean touching; // 터치 여부
     private boolean detected; // 사람 감지 여부
 
+    private TextToSpeech ttsSpeak;
+    private TextToSpeech ttsAskQuestion;
+    private Locale language;
+
     private Robot robot;
 
     private SessionsClient sessionsClient;
@@ -113,13 +125,12 @@ public class MainActivity extends AppCompatActivity implements
 
     Button bar; // 대화시 나타나는 초록색 막대
     ImageView mic;  // User가 말할 때 나타나는 마이크 모양 아이콘
-    TextView asr;   // User의 음성 입력 텍스트
-    TextView tts;   // 테미의 음성 출력 텍스트
-    TextView notice;
+    TextView conversation;
 
     //    ViewPager 관련 변수 선언
     private ViewPager2 mPager;
     private FragmentStateAdapter pagerAdapter;
+    private FragmentStateAdapter pagerAdapter_en;
     private int num_page = 2;
     private CircleIndicator3 mIndicator;
 
@@ -168,38 +179,20 @@ public class MainActivity extends AppCompatActivity implements
         moving = false;
         atStandby = true; // 처음 앱이 실행되면, 위치와 관계 없이 사용자를 감지
 
-        asr = (TextView) findViewById(R.id.asr);
-        tts = (TextView) findViewById(R.id.tts);
-        notice = (TextView) findViewById(R.id.notice);
+        conversation = findViewById(R.id.conversation);
         bar = (Button) findViewById(R.id.speak_bar);
         mic = (ImageView) findViewById(R.id.mic);
+        conversation.setText(R.string.notice);
         bar.setVisibility(View.INVISIBLE);
         mic.setVisibility(View.INVISIBLE);
 
-        Button english_btn = findViewById(R.id.english_btn);    // 영어 버튼
-        english_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                LocaleHelper.setLocale(MainActivity.this, "en");
-                recreate();
-            }
-        });
-
-        Button korean_btn = findViewById(R.id.korean_btn);  // 한국어 버튼
-        korean_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                LocaleHelper.setLocale(MainActivity.this, "ko");
-                recreate();
-            }
-        });
-
-        Button reinitButton = findViewById(R.id.reinit); // 대화 시작 버튼
+        final Button reinitButton = findViewById(R.id.reinit); // 대화 시작 버튼
         reinitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // 대화를 시작하거나 이어하기
-                robot.askQuestion("말씀해주세요.");
+//                robot.askQuestion("말씀해주세요.");
+                askQuestion("말씀해주세요.");
             }
         });
 
@@ -215,7 +208,8 @@ public class MainActivity extends AppCompatActivity implements
         homeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                robot.speak(TtsRequest.create("홈 베이스로 이동합니다.", true));
+//                robot.speak(TtsRequest.create("홈 베이스로 이동합니다.", true));
+                speak("홈 베이스로 이동합니다.");
                 robot.goTo("home base");
             }
         });
@@ -224,7 +218,8 @@ public class MainActivity extends AppCompatActivity implements
         standbyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                robot.speak(TtsRequest.create("행정실 입구로 이동합니다.", true));
+//                robot.speak(TtsRequest.create("행정실 입구로 이동합니다.", true));
+                speak("행정실 입구로 이동합니다.");
                 robot.goTo("행정실 입구");
             }
         });
@@ -236,8 +231,7 @@ public class MainActivity extends AppCompatActivity implements
                 robot.finishConversation();
                 bar.setVisibility(View.INVISIBLE);
                 mic.setVisibility(View.INVISIBLE);
-                asr.setText("");
-                tts.setText("");
+                conversation.setText("");
             }
         });
 
@@ -245,6 +239,7 @@ public class MainActivity extends AppCompatActivity implements
         mPager = findViewById(R.id.viewpager);
         //Adapter
         pagerAdapter = new MyAdapter(this, num_page);
+        pagerAdapter_en = new MyAdapterEn(this, num_page);
         mPager.setAdapter(pagerAdapter);
         //Indicator
         mIndicator = findViewById(R.id.indicator);
@@ -252,8 +247,8 @@ public class MainActivity extends AppCompatActivity implements
         mIndicator.createIndicators(num_page,0);
         //ViewPager Setting
         mPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
-        mPager.setCurrentItem(1000);
-        mPager.setOffscreenPageLimit(3);
+        mPager.setCurrentItem(0);
+        mPager.setOffscreenPageLimit(1);
 
         mPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
@@ -290,6 +285,132 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         });
+
+        Button english_btn = findViewById(R.id.english_btn);    // 영어 버튼
+        english_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mPager.setAdapter(pagerAdapter_en);
+                language = Locale.ENGLISH;
+                ttsSpeak.setLanguage(language);
+                ttsAskQuestion.setLanguage(language);
+                reinitButton.setText("TALK");
+            }
+        });
+
+        Button korean_btn = findViewById(R.id.korean_btn);  // 한국어 버튼
+        korean_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mPager.setAdapter(pagerAdapter);
+                language = Locale.KOREAN;
+                ttsSpeak.setLanguage(language);
+                ttsAskQuestion.setLanguage(language);
+                reinitButton.setText("대화시작");
+            }
+        });
+
+        // Android tts
+        language = Locale.KOREAN;
+        ttsSpeak = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status != ERROR) {
+                    ttsSpeak.setLanguage(language);
+                    ttsSpeak.setPitch(1.0f);
+                    ttsSpeak.setSpeechRate(1.2f);
+
+                }
+            }
+        });
+
+        ttsSpeak.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String s) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        whileTalking = true;
+                    }
+                });
+            }
+
+            @Override
+            public void onDone(String s) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        whileTalking = false;
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String s) {
+            }
+
+            @Override
+            public void onRangeStart(String utteranceId, int start, int end, int frame) {
+            }
+        });
+
+        ttsAskQuestion = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status != ERROR) {
+                    ttsAskQuestion.setLanguage(language);
+                    ttsAskQuestion.setPitch(1.0f);
+                    ttsAskQuestion.setSpeechRate(1.2f);
+                }
+            }
+        });
+
+        ttsAskQuestion.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String s) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("Test: ", "ok2");
+                        whileTalking = true;
+                    }
+                });
+            }
+
+            @Override
+            public void onDone(String s) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        // 말하는 것을 듣지 않도록, onDone에서 Listening 시작.
+                        Log.d("Test: ", "ok3");
+//                        robot.askQuestion(".");
+                        robot.wakeup();
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String s) {
+                Log.d("Test: ", "error");
+            }
+
+            @Override
+            public void onRangeStart(String utteranceId, int start, int end, int frame) {
+            }
+        });
+
+    }
+
+    private void askQuestion(String question) {
+        conversation.setText(question);
+        // QUEUE_FLUSH: 초기화하고 새로 넣는 것, QUEUE_ADD: 현재 말하는거 다음으로 대기.
+        ttsAskQuestion.speak(question, TextToSpeech.QUEUE_ADD, null, "question");
+    }
+
+    private void speak(String sentence) {
+        conversation.setText(sentence);
+        ttsSpeak.speak(sentence, TextToSpeech.QUEUE_ADD, null,"speak");
     }
 
     @Override
@@ -302,7 +423,8 @@ public class MainActivity extends AppCompatActivity implements
                 String result = data.getStringExtra("result");
                 if(result.equals("Yes")) {
                     Log.d(TAG, "onActivityResult: goTo " + teacher);
-                    robot.speak(TtsRequest.create(teacher + " 자리로 이동합니다.", true));
+//                    robot.speak(TtsRequest.create(teacher + " 자리로 이동합니다.", true));
+                    speak(teacher + " 자리로 이동합니다.");
                     robot.goTo(teacher);
                 }
             }
@@ -325,7 +447,16 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void chatInitialize(String input) { // 대화 초기화하는 함수 - 프래그먼트에서 챗봇을 시작하기위해 사용
-        QueryInput queryInput = QueryInput.newBuilder().setText(TextInput.newBuilder().setText(input).setLanguageCode("ko")).build();
+        String lan;
+        if (language == Locale.KOREAN) lan = "ko";
+        else lan = "en";
+
+        QueryInput queryInput = QueryInput.newBuilder()
+                .setText(TextInput.newBuilder()
+                        .setText(input)
+                        .setLanguageCode(lan))
+                .build();
+
         new RequestJavaV2Task(MainActivity.this, session, sessionsClient, queryInput).execute();
     }
 
@@ -367,17 +498,20 @@ public class MainActivity extends AppCompatActivity implements
 
             // 테미가 이동하는 경우.
             if (intentName.equals("MoveTemi-Yes")){
-                robot.speak(TtsRequest.create(teacherAt319_Name[indexOfTeacher] + " 선생님 자리로 " + botReply, true));
+//                robot.speak(TtsRequest.create(teacherAt319_Name[indexOfTeacher] + " 선생님 자리로 " + botReply, true));
+                speak(teacherAt319_Name[indexOfTeacher] + " 선생님 자리로 이동합니다.");
                 robot.goTo(teacherAt319_Name[indexOfTeacher] + " 선생님");
             }
 
             else if (botReply.contains("홈베이스")) {
-                robot.speak(TtsRequest.create(botReply, true));
+//                robot.speak(TtsRequest.create(botReply, true));
+                speak(botReply);
                 robot.goTo("home base");
             }
 
             else if (botReply.contains("행정실 입구")) {
-                robot.speak(TtsRequest.create(botReply, true));
+//                robot.speak(TtsRequest.create(botReply, true));
+                speak(botReply);
                 robot.goTo("행정실 입구");
             }
 
@@ -386,32 +520,31 @@ public class MainActivity extends AppCompatActivity implements
             }
 
             else if (botReply.contains("날씨")){
-                robot.speak(TtsRequest.create("날씨 정보를 알려드립니다.", true));
+//                robot.speak(TtsRequest.create("날씨 정보를 알려드립니다.", true));
+                speak("날씨 정보를 알려드립니다.");
                 Intent intent = new Intent(MainActivity.this, Web.class);
                 intent.putExtra("url", "https://weather.naver.com/today/09620735");
                 startActivity(intent);
-//                startActivity(new Intent(MainActivity.this, Weather.class));
             }
 
             // 그 이외는 Dialogflow 답변을 그대로 읽어줌. 물음표 여부를 통해서 다음 대답을 받을지 판단 (추가적인 context로 추후 구분 가능성).
             else {
                 if (botReply.contains("?"))
-                    robot.askQuestion(botReply);
+//                    robot.askQuestion(botReply);
+                    askQuestion(botReply);
                 else {
                     if (botReply.contains("button"))
                         return;
                     else
-                        robot.speak(TtsRequest.create(botReply, true));
+                        speak(botReply);
+//                        robot.speak(TtsRequest.create(botReply, true));
                 }
             }
         } else {
             //Log.d(TAG, "Bot Reply: Null");
-            robot.speak(TtsRequest.create("전송 오류가 있었습니다. 다시 시도해주시기 바랍니다.", true));
+//            robot.speak(TtsRequest.create("전송 오류가 있었습니다. 다시 시도해주시기 바랍니다.", true));
+            speak("전송 오류가 있었습니다. 다시 시도해주시기 바랍니다.");
         }
-    }
-
-    public void speak(String s){
-        robot.speak(TtsRequest.create(s, true));
     }
 
     public double send(String data){ // 체온 측정 관련 함수
@@ -438,23 +571,31 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void ThermoCheck(){
-        robot.speak(TtsRequest.create("체온 측정 중입니다", true));
+//        robot.speak(TtsRequest.create("체온 측정 중입니다", true));
+        speak("체온 측정 중입니다.");
         new Thread(new Runnable() {
             @Override
             public void run() {
                 double temp = send("start_measure");
                 temp = Math.round(temp * 100.0) / 100.0;
-                if (temp < 38.0) robot.speak(TtsRequest.create("체온이 "+temp+"º로 측정되었습니다.", true));
-                else if (temp < 50.0) robot.speak(TtsRequest.create(temp + "º. 위험 체온입니다. 출입을 불허합니다.", true));
-                else robot.speak(TtsRequest.create("측정을 방해하는 물체가 있습니다. 다른 각도에서 다시 시도해주시기 바랍니다.", true));
+                if (temp < 38.0)
+                    speak("체온이 "+temp+"º로 측정되었습니다.");
+//                    robot.speak(TtsRequest.create("체온이 "+temp+"º로 측정되었습니다.", true));
+                else if (temp < 50.0)
+                    speak(temp + "º. 위험 체온입니다. 출입을 불허합니다.");
+//                    robot.speak(TtsRequest.create(temp + "º. 위험 체온입니다. 출입을 불허합니다.", true));
+                else
+                    speak("측정을 방해하는 물체가 있습니다. 다른 각도에서 다시 시도해주시기 바랍니다.");
+//                    robot.speak(TtsRequest.create("측정을 방해하는 물체가 있습니다. 다른 각도에서 다시 시도해주시기 바랍니다.", true));
             }
         }).start();
     }
 
     @Override
     public void onAsrResult(final @NonNull String asrResult) { // https://github.com/robotemi/sdk/wiki/Speech 참고
-        QueryInput queryInput = QueryInput.newBuilder().setText(TextInput.newBuilder().setText(asrResult).setLanguageCode("ko")).build();
-        new RequestJavaV2Task(MainActivity.this, session, sessionsClient, queryInput).execute();
+//        QueryInput queryInput = QueryInput.newBuilder().setText(TextInput.newBuilder().setText(asrResult).setLanguageCode("ko")).build();
+//        new RequestJavaV2Task(MainActivity.this, session, sessionsClient, queryInput).execute();
+        chatInitialize(asrResult);
         try {
             Bundle metadata = getPackageManager()
                     .getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA)
@@ -470,8 +611,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onWakeupWord(@NotNull String wakeupWord, int direction) { // https://github.com/robotemi/sdk/wiki/Speech 참고
-        Log.d(TAG, "onWakeupWord: " + wakeupWord);
-        robot.askQuestion("네?");
+        robot.stopMovement();
     }
 
     //https://github.com/robotemi/sdk/wiki/Detection-&-Interaction
@@ -503,9 +643,7 @@ public class MainActivity extends AppCompatActivity implements
             whileTalking = false;
             bar.setVisibility(View.INVISIBLE);
             mic.setVisibility(View.INVISIBLE);
-            notice.setVisibility(View.VISIBLE);
-            asr.setText("");
-            tts.setText("");
+            conversation.setText(R.string.notice);
 
             // 만약 모든 상호작용이 끝났고, 대기 장소나 홈 베이스가 아니면.
             if (!moving && !atStandby && !atHome) {
@@ -524,7 +662,7 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void onFinish() { // 정상적으로 타이머가 끝나면, 대기 장소 자동 복귀.
                         Log.d(TAG, "Countdown finished, return to standby.");
-                        robot.speak(TtsRequest.create("행정실 입구로 돌아갑니다.", true));
+//                        robot.speak(TtsRequest.create("행정실 입구로 돌아갑니다.", true));
                         robot.goTo("행정실 입구");
                     }
                 }.start();
@@ -533,25 +671,21 @@ public class MainActivity extends AppCompatActivity implements
 
         if (status == 1) {  // Listening user's voice
             whileTalking = true;
-            notice.setVisibility(View.INVISIBLE);
-            asr.setText("");
             mic.setVisibility(View.VISIBLE);
             bar.setVisibility(View.VISIBLE);
-            asr.setText(text);
+            conversation.setText(text);
         }
         if (status == 2) {  // NLP
             Log.d(TAG, "onConvStatusChanged " + status + ": " + text);
             whileTalking = true;
-            asr.setText(text);
+            conversation.setText(text);
         }
         if (status == 3) {  // Playing TTS
             Log.d(TAG, "onConvStatusChanged " + status + ": " + text);
             whileTalking = true;
-            notice.setVisibility(View.INVISIBLE);
-            asr.setText("");
             mic.setVisibility(View.INVISIBLE);
             bar.setVisibility(View.INVISIBLE);
-            tts.setText(text);
+            conversation.setText(text);
         }
     }
 
@@ -584,12 +718,12 @@ public class MainActivity extends AppCompatActivity implements
 
             // 선생님 자리에 도착.
             else
-                robot.speak(TtsRequest.create("도착했습니다. 다른 용무가 있으시면 대화하기 버튼을 눌러주세요.", true));
+                robot.speak(TtsRequest.create("도착했습니다. 다른 용무가 있으시면 대화시작 버튼을 눌러주세요.", true));
         }
 
         else if (status.equals(OnGoToLocationStatusChangedListener.ABORT)) {
             moving = false;
-            robot.askQuestion("네, 부르셨나요?");
+//            robot.askQuestion("네, 부르셨나요?");
         }
     }
 

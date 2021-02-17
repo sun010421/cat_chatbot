@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    >
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -30,7 +31,7 @@
                     android:drawablePadding="20dp"
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
-                    android:text="@string/scholarship_btn"
+                    android:text="scholarship"
                     android:textSize="@dimen/buttonText"
                     android:textColor="@color/text_color"
                     android:background="@drawable/custom_button_selector"
@@ -47,7 +48,7 @@
                     android:drawablePadding="20dp"
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
-                    android:text="@string/graduation_btn"
+                    android:text="graduation"
                     android:textSize="@dimen/buttonText"
                     android:textColor="@color/text_color"
                     android:background="@drawable/custom_button_selector"

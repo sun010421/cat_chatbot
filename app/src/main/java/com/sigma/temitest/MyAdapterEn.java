@@ -5,10 +5,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-public class MyAdapter extends FragmentStateAdapter {
+public class MyAdapterEn extends FragmentStateAdapter {
     public int mCount;
 
-    public MyAdapter(FragmentActivity fa, int count) {
+    public MyAdapterEn(FragmentActivity fa, int count) {
         super(fa);
         mCount = count;
     }
@@ -17,7 +17,7 @@ public class MyAdapter extends FragmentStateAdapter {
     @Override
     public Fragment createFragment(int position) {
         int index = getRealPosition(position);
-        if(index==0) return new FragmentSecond();
+        if(index==0) return new FragmentSecondEn();
         else return new FragmentFirst();
     }
 

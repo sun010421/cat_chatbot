@@ -39,7 +39,7 @@ public class FragmentThird extends Fragment {
         dormitory.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("기숙사");
+//                mainActivity.chatInitialize("기숙사");
             }
         });
 
@@ -47,7 +47,7 @@ public class FragmentThird extends Fragment {
         ssai.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("연합전공");
+//                mainActivity.chatInitialize("연합전공");
             }
         });
 
@@ -55,7 +55,7 @@ public class FragmentThird extends Fragment {
         doublemajor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("복수전공, 부전공");
+//                mainActivity.chatInitialize("복수전공, 부전공");
             }
         });
 
@@ -63,23 +63,23 @@ public class FragmentThird extends Fragment {
         inout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("전입, 전출");
+//                mainActivity.chatInitialize("전입, 전출");
             }
         });
 
         final Button club = (Button) getView().findViewById(R.id.club_btn);
-        club.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mainActivity.chatInitialize("동아리");
-            }
-        });
+//        club.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                mainActivity.chatInitialize("동아리");
+//            }
+//        });
 
         final Button center = (Button) getView().findViewById(R.id.center_btn);
         center.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("학생 센터 위치");
+//                mainActivity.chatInitialize("학생 센터 위치");
             }
         });
 
@@ -87,7 +87,7 @@ public class FragmentThird extends Fragment {
         mentoring.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("튜터링, 멘토링");
+//                mainActivity.chatInitialize("튜터링, 멘토링");
             }
         });
 
@@ -95,7 +95,7 @@ public class FragmentThird extends Fragment {
         counseling.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mainActivity.chatInitialize("심리상담, 검사");
+//                mainActivity.chatInitialize("심리상담, 검사");
             }
         });
     }
