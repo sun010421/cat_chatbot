@@ -18,7 +18,7 @@ public class MyAdapterEn extends FragmentStateAdapter {
     public Fragment createFragment(int position) {
         int index = getRealPosition(position);
         if(index==0) return new FragmentSecondEn();
-        else return new FragmentFirst();
+        else return new FragmentFirstEn();
     }
 
     @Override

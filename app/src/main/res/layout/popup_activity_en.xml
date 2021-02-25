@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/rounded"
+    android:orientation="vertical"
+    android:layout_width="1000dp"
+    android:layout_height="300dp"
+    >
+
+    <!-- Notice -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="230dp"
+        >
+        <TextView
+            android:id="@+id/popupText"
+            android:textSize="25sp"
+            android:textColor="#000"
+            android:fontFamily="@font/nanumsquare_bold"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:layout_marginBottom="3dp"
+            android:layout_width="900dp"
+            android:layout_height="wrap_content" />
+    </FrameLayout>
+    <!-- Notice -->
+
+    <!-- 닫기 버튼 -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <Button
+            android:id="@+id/yes_btn"
+            android:text="@string/Yes_en"
+            android:textSize="20sp"
+            android:textColor="#000"
+            android:fontFamily="@font/nanumsquare_bold"
+            android:gravity="center"
+            android:background="@drawable/popup_button_left"
+            android:layout_width="match_parent"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:onClick="Yes"/>
+        <Button
+            android:id="@+id/no_btn"
+            android:text="@string/No_en"
+            android:textSize="20sp"
+            android:textColor="#000"
+            android:fontFamily="@font/nanumsquare_bold"
+            android:gravity="center"
+            android:background="@drawable/popup_button_right"
+            android:layout_width="match_parent"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:onClick="No"/>
+    </LinearLayout>
+    <!--// 닫기 버튼 -->
+</LinearLayout>

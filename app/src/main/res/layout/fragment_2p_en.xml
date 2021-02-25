@@ -31,7 +31,7 @@
                     android:drawablePadding="20dp"
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
-                    android:text="scholarship"
+                    android:text="@string/scholarship_btn_en"
                     android:textSize="@dimen/buttonText"
                     android:textColor="@color/text_color"
                     android:background="@drawable/custom_button_selector"
@@ -48,7 +48,7 @@
                     android:drawablePadding="20dp"
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
-                    android:text="graduation"
+                    android:text="@string/graduation_btn_en"
                     android:textSize="@dimen/buttonText"
                     android:textColor="@color/text_color"
                     android:background="@drawable/custom_button_selector"
@@ -65,7 +65,7 @@
                     android:drawablePadding="20dp"
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
-                    android:text="@string/locker_btn"
+                    android:text="@string/locker_btn_en"
                     android:textSize="@dimen/buttonText"
                     android:textColor="@color/text_color"
                     android:background="@drawable/custom_button_selector"
@@ -82,84 +82,84 @@
                     android:drawablePadding="20dp"
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
-                    android:text="@string/grade_btn"
+                    android:text="@string/grade_btn_en"
                     android:textSize="@dimen/buttonText"
                     android:textColor="@color/text_color"
                     android:background="@drawable/custom_button_selector"
                     />
             </TableRow>
+
             <TableRow
                 android:layout_width="0dp"
-                android:layout_weight="1"
-                >
+                android:layout_weight="1">
+
                 <Button
                     android:id="@+id/apply_btn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:paddingBottom="15dp"
-                    android:paddingTop="15dp"
-                    android:paddingHorizontal="25dp"
+                    android:background="@drawable/custom_button_selector"
                     android:drawableTop="@drawable/apply_top"
-                    android:drawablePadding="10dp"
+                    android:drawablePadding="0dp"
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
-                    android:text="@string/apply_btn"
-                    android:textSize="@dimen/buttonText"
+                    android:paddingHorizontal="28dp"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="15dp"
+                    android:text="@string/apply_btn_en"
                     android:textColor="@color/text_color"
-                    android:background="@drawable/custom_button_selector"
-                    />
+                    android:textSize="@dimen/buttonText" />
+
                 <Button
                     android:id="@+id/curriculum_btn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:paddingBottom="15dp"
-                    android:paddingTop="15dp"
-                    android:paddingHorizontal="43dp"
+                    android:background="@drawable/custom_button_selector"
                     android:drawableTop="@drawable/curriculum_top"
                     android:drawablePadding="20dp"
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
-                    android:text="@string/curriculum_btn"
-                    android:textSize="@dimen/buttonText"
+                    android:paddingHorizontal="43dp"
+                    android:paddingTop="15dp"
+                    android:paddingBottom="15dp"
+                    android:text="@string/curriculum_btn_en"
                     android:textColor="@color/text_color"
-                    android:background="@drawable/custom_button_selector"
-                    />
+                    android:textSize="@dimen/buttonText" />
+
                 <Button
                     android:id="@+id/lab_btn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:paddingBottom="15dp"
-                    android:paddingTop="15dp"
-                    android:paddingHorizontal="40dp"
+                    android:background="@drawable/custom_button_selector"
                     android:drawableTop="@drawable/lab_top"
                     android:drawablePadding="20dp"
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
-                    android:text="@string/lab_btn"
-                    android:textSize="@dimen/buttonText"
+                    android:paddingHorizontal="40dp"
+                    android:paddingTop="15dp"
+                    android:paddingBottom="15dp"
+                    android:text="@string/lab_btn_en"
                     android:textColor="@color/text_color"
-                    android:background="@drawable/custom_button_selector"
-                    />
+                    android:textSize="@dimen/buttonText" />
+
                 <Button
                     android:id="@+id/certificate_btn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:paddingBottom="15dp"
-                    android:paddingTop="15dp"
-                    android:paddingHorizontal="40dp"
+                    android:background="@drawable/custom_button_selector"
                     android:drawableTop="@drawable/certificate_top"
                     android:drawablePadding="20dp"
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
-                    android:text="@string/certificate"
-                    android:textSize="@dimen/buttonText"
+                    android:paddingHorizontal="40dp"
+                    android:paddingTop="15dp"
+                    android:paddingBottom="15dp"
+                    android:text="@string/certificate_btn_en"
                     android:textColor="@color/text_color"
-                    android:background="@drawable/custom_button_selector"
-                    />
+                    android:textSize="@dimen/buttonText" />
             </TableRow>
         </TableLayout>
     </RelativeLayout>

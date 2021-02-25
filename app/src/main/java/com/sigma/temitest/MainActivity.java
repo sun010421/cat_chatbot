@@ -2,42 +2,34 @@ package com.sigma.temitest;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.view.ViewCompat;
-import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.content.Context;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.media.Image;
-import android.os.Build;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
-import android.text.method.ScrollingMovementMethod;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.MotionEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.api.client.util.Sleeper;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
@@ -49,54 +41,39 @@ import com.google.cloud.dialogflow.v2.SessionsSettings;
 import com.google.cloud.dialogflow.v2.TextInput;
 import com.google.cloud.dialogflow.v2.QueryResult;
 
-import com.robotemi.sdk.BatteryData;
 import com.robotemi.sdk.Robot;
 import com.robotemi.sdk.TtsRequest;
 import com.robotemi.sdk.constants.SdkConstants;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Text;
 
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.UUID;
 
-import android.speech.RecognitionListener;
-import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
-
-import com.robotemi.sdk.face.ContactModel;
-import com.robotemi.sdk.face.OnFaceRecognizedListener;
-import com.robotemi.sdk.listeners.OnBatteryStatusChangedListener;
 import com.robotemi.sdk.listeners.OnConversationStatusChangedListener;
+import com.robotemi.sdk.listeners.OnDetectionDataChangedListener;
 import com.robotemi.sdk.listeners.OnDetectionStateChangedListener;
 import com.robotemi.sdk.listeners.OnGoToLocationStatusChangedListener;
 import com.robotemi.sdk.listeners.OnUserInteractionChangedListener;
 import com.robotemi.sdk.model.DetectionData;
-import com.robotemi.sdk.navigation.listener.OnDistanceToLocationChangedListener;
 
 import me.relex.circleindicator.CircleIndicator3;
 
-import static android.provider.Contacts.PresenceColumns.IDLE;
 import static android.speech.tts.TextToSpeech.ERROR;
 
 public class MainActivity extends AppCompatActivity implements
         Robot.AsrListener,
         Robot.WakeupWordListener,
+        Robot.ConversationViewAttachesListener,
         OnDetectionStateChangedListener,
+        OnDetectionDataChangedListener,
         OnConversationStatusChangedListener,
         OnUserInteractionChangedListener,
-        OnGoToLocationStatusChangedListener,
-        OnFaceRecognizedListener,
-        OnBatteryStatusChangedListener {
+        OnGoToLocationStatusChangedListener {
 
     private boolean whileTalking; // 사용자와 대화 중인지.
     private boolean atStandby; // 대기 장소인지 여부.
@@ -104,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements
     private boolean moving; // 이동중 여부.
     private boolean interacting; // 상호작용 여부
     private boolean touching; // 터치 여부
-    private boolean detected; // 사람 감지 여부
+    int detect_state; // 사람 감지 여부
 
     private TextToSpeech ttsSpeak;
     private TextToSpeech ttsAskQuestion;
@@ -116,6 +93,12 @@ public class MainActivity extends AppCompatActivity implements
     private SessionName session;
 
     private int prev_state; // onDetectionStateChanged 함수에서 사람 있는지 없는지 state에 대한 변수
+    int prev_conv_status = 0;
+    boolean prev_detect_state = false;
+    boolean prev_prev_detect_state = false;
+    boolean[] isDetected = new boolean[5];
+    DetectionData[] detection = new DetectionData[N];
+    final static int N = 6;
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private String uuid = UUID.randomUUID().toString();
@@ -123,9 +106,11 @@ public class MainActivity extends AppCompatActivity implements
     private String[] teacherAt319_Name;
     private int indexOfTeacher; // 테미가 안내해주려는 선생님이 배열에서 몇번째인지 나타냄.
 
-    Button bar; // 대화시 나타나는 초록색 막대
     ImageView mic;  // User가 말할 때 나타나는 마이크 모양 아이콘
-    TextView conversation;
+    Button start_talking;
+    Button stop_talking;
+    Button english_btn;
+    Button korean_btn;
 
     //    ViewPager 관련 변수 선언
     private ViewPager2 mPager;
@@ -139,12 +124,12 @@ public class MainActivity extends AppCompatActivity implements
         super.onStart();
         Robot.getInstance().addAsrListener(this);
         Robot.getInstance().addWakeupWordListener(this);
+        Robot.getInstance().addConversationViewAttachesListenerListener(this);
         Robot.getInstance().addOnDetectionStateChangedListener(this);
+        Robot.getInstance().addOnDetectionDataChangedListener(this);
         Robot.getInstance().addOnConversationStatusChangedListener(this);
         Robot.getInstance().addOnGoToLocationStatusChangedListener(this);
         Robot.getInstance().addOnUserInteractionChangedListener(this);
-        Robot.getInstance().addOnBatteryStatusChangedListener(this);
-        Robot.getInstance().addOnFaceRecognizedListener(this);
     }
 
     @Override
@@ -152,12 +137,88 @@ public class MainActivity extends AppCompatActivity implements
         super.onStop();
         Robot.getInstance().removeAsrListener(this);
         Robot.getInstance().removeWakeupWordListener(this);
+        Robot.getInstance().removeConversationViewAttachesListenerListener(this);
         Robot.getInstance().removeOnDetectionStateChangedListener(this);
+        Robot.getInstance().removeOnDetectionDataChangedListener(this);
         Robot.getInstance().removeOnConversationStatusChangedListener(this);
         Robot.getInstance().removeOnGoToLocationStatusChangedListener(this);
         Robot.getInstance().removeOnUserInteractionChangedListener(this);
-        Robot.getInstance().removeOnBatteryStatusChangedListener(this);
-        Robot.getInstance().removeOnFaceRecognizedListener(this);
+    }
+
+    AlertDialog.Builder builder;
+    AlertDialog alertDialog;
+    Dialog dialog;
+    TextView AsrText;
+    TextView TtsText;
+    TextView Notice;
+
+    @Override
+    public void onConversationAttaches(boolean b) {
+        Log.d(TAG, "onConversationAttaches: " + b);
+
+        if(b)
+            dialog.show();
+        else if(!b && !whileTalking)
+            dialog.dismiss();
+        else
+            return;
+    }
+
+    public boolean greeting(DetectionData[] detectionData){
+        for(int i = 0; i < detectionData.length-1; i++){
+            if(!detectionData[i].isDetected())
+                return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void onDetectionDataChanged(@NotNull DetectionData detectionData) {
+        Log.d(TAG, "onDetectionDataChanged: " + detectionData);
+
+//        robot.stopMovement();
+
+        if(atStandby && !whileTalking && !detection[N-1].isDetected()){
+            if(greeting(detection)) {
+//                dialog.show();
+//                if(language == Locale.KOREAN)
+//                    askQuestion("안녕하세요.\n무슨 일로 오셨나요?");
+//                else
+//                    askQuestion("Hi.\nHow can I help you?");
+            }
+        }
+
+        for(int i = N-1; i > 0; i--)
+            detection[i] = detection[i-1];
+        detection[0] = detectionData;
+
+//        for(int i = 4; i > 0; i--)
+//            isDetected[i] = isDetected[i-1];
+//        isDetected[0] = detectionData.isDetected();
+    }
+
+    public void setKorean(View view){
+        mPager.setAdapter(pagerAdapter);
+        language = Locale.KOREAN;
+        ttsSpeak.setLanguage(language);
+        ttsAskQuestion.setLanguage(language);
+        start_talking.setText(R.string.start_talking);
+        stop_talking.setText(R.string.stop_talking);
+        Notice.setText(R.string.notice);
+        korean_btn.setVisibility(View.INVISIBLE);
+        english_btn.setVisibility(View.VISIBLE);
+    }
+
+    public void setEnglish(View view){
+        mPager.setAdapter(pagerAdapter_en);
+        language = Locale.ENGLISH;
+        ttsSpeak.setLanguage(language);
+        ttsAskQuestion.setLanguage(language);
+        start_talking.setText(R.string.start_talking_en);
+        stop_talking.setText(R.string.stop_talking_en);
+        Notice.setText(R.string.notice_en);
+        english_btn.setVisibility(View.INVISIBLE);
+        korean_btn.setVisibility(View.VISIBLE);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -166,33 +227,83 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+
         robot = Robot.getInstance(); // get an instance of the robot in order to begin using its features.
+
         initV2Chatbot();
 
-        Resources resources = getResources();
-        if(resources.getStringArray(R.array.teachers_name) != null)
-            teacherAt319_Name = resources.getStringArray(R.array.teachers_name);
+        LayoutInflater inflater = getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.dialog, null);
+//        builder = new AlertDialog.Builder(this)
+//                .setView(dialogView);
 
-        robot.startFaceRecognition();
+//        alertDialog = builder.create();
+//        alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        dialog = new Dialog(MainActivity.this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.setContentView(dialogView);
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                whileTalking = false;
+                robot.finishConversation();
+                ttsSpeak.stop();
+                ttsAskQuestion.stop();
+                AsrText.setText("");
+                TtsText.setText("");
+                mic.setVisibility(View.INVISIBLE);
+            }
+        });
+
+
+        for(int i = 0; i < N; i++)
+            detection[i] = new DetectionData(0, 0, false);
+
+
+        AsrText = dialogView.findViewById(R.id.AsrText);
+        TtsText = dialogView.findViewById(R.id.TtsText);
+
+        Resources resources = getResources();
+//        if(resources.getStringArray(R.array.teachers_name) != null)
+        teacherAt319_Name = resources.getStringArray(R.array.teachers_name);
 
         whileTalking = false;
         moving = false;
         atStandby = true; // 처음 앱이 실행되면, 위치와 관계 없이 사용자를 감지
 
-        conversation = findViewById(R.id.conversation);
-        bar = (Button) findViewById(R.id.speak_bar);
-        mic = (ImageView) findViewById(R.id.mic);
-        conversation.setText(R.string.notice);
-        bar.setVisibility(View.INVISIBLE);
-        mic.setVisibility(View.INVISIBLE);
+        mic = dialogView.findViewById(R.id.mic);
+        start_talking = findViewById(R.id.start_talking_btn);
+        stop_talking = findViewById(R.id.stop_talking_btn);
+        Notice = findViewById(R.id.notice);
+        Notice.setText(R.string.notice);
+        english_btn = findViewById(R.id.english_btn);
+        korean_btn = findViewById(R.id.korean_btn);
+        korean_btn.setVisibility(View.INVISIBLE);
 
-        final Button reinitButton = findViewById(R.id.reinit); // 대화 시작 버튼
-        reinitButton.setOnClickListener(new View.OnClickListener() {
+        // 대화 시작 버튼
+        start_talking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // 대화를 시작하거나 이어하기
-//                robot.askQuestion("말씀해주세요.");
-                askQuestion("말씀해주세요.");
+                dialog.show();
+                if (language == Locale.KOREAN)
+                    askQuestion("말씀해주세요.");
+                else
+                    askQuestion("I'm listening.");
+            }
+        });
+
+         // 음성/대화 중지 버튼
+        stop_talking.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ttsSpeak.stop();
+                ttsAskQuestion.stop();
+                whileTalking = false;
+                robot.finishConversation();
+                mic.setVisibility(View.INVISIBLE);
             }
         });
 
@@ -208,8 +319,11 @@ public class MainActivity extends AppCompatActivity implements
         homeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                robot.speak(TtsRequest.create("홈 베이스로 이동합니다.", true));
-                speak("홈 베이스로 이동합니다.");
+                if (language == Locale.KOREAN)
+                    speak("홈 베이스로 이동합니다.");
+                else
+                    speak("Moving to home base.");
+
                 robot.goTo("home base");
             }
         });
@@ -218,20 +332,13 @@ public class MainActivity extends AppCompatActivity implements
         standbyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                robot.speak(TtsRequest.create("행정실 입구로 이동합니다.", true));
-                speak("행정실 입구로 이동합니다.");
-                robot.goTo("행정실 입구");
-            }
-        });
+                if (language == Locale.KOREAN)
+                    speak("행정실 입구로 이동합니다.");
+                else
+                    speak("Moving to entrance of office.");
 
-        Button stop_talking = findViewById(R.id.stop_talking_btn); // 음성/대화 중지 버튼
-        stop_talking.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                robot.finishConversation();
-                bar.setVisibility(View.INVISIBLE);
-                mic.setVisibility(View.INVISIBLE);
-                conversation.setText("");
+                robot.goTo("행정실 입구");
+//                startActivity(new Intent(MainActivity.this, CameraX.class));
             }
         });
 
@@ -286,30 +393,6 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-        Button english_btn = findViewById(R.id.english_btn);    // 영어 버튼
-        english_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPager.setAdapter(pagerAdapter_en);
-                language = Locale.ENGLISH;
-                ttsSpeak.setLanguage(language);
-                ttsAskQuestion.setLanguage(language);
-                reinitButton.setText("TALK");
-            }
-        });
-
-        Button korean_btn = findViewById(R.id.korean_btn);  // 한국어 버튼
-        korean_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPager.setAdapter(pagerAdapter);
-                language = Locale.KOREAN;
-                ttsSpeak.setLanguage(language);
-                ttsAskQuestion.setLanguage(language);
-                reinitButton.setText("대화시작");
-            }
-        });
-
         // Android tts
         language = Locale.KOREAN;
         ttsSpeak = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
@@ -318,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements
                 if (status != ERROR) {
                     ttsSpeak.setLanguage(language);
                     ttsSpeak.setPitch(1.0f);
-                    ttsSpeak.setSpeechRate(1.2f);
+                    ttsSpeak.setSpeechRate(1.0f);
 
                 }
             }
@@ -331,6 +414,7 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void run() {
                         whileTalking = true;
+                        mic.setVisibility(View.INVISIBLE);
                     }
                 });
             }
@@ -341,6 +425,8 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void run() {
                         whileTalking = false;
+                        robot.finishConversation();
+                        dialog.dismiss();
                     }
                 });
             }
@@ -360,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements
                 if (status != ERROR) {
                     ttsAskQuestion.setLanguage(language);
                     ttsAskQuestion.setPitch(1.0f);
-                    ttsAskQuestion.setSpeechRate(1.2f);
+                    ttsAskQuestion.setSpeechRate(1.0f);
                 }
             }
         });
@@ -371,8 +457,9 @@ public class MainActivity extends AppCompatActivity implements
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Log.d("Test: ", "ok2");
+//                        Log.d("Test: ", "ok2");
                         whileTalking = true;
+                        mic.setVisibility(View.INVISIBLE);
                     }
                 });
             }
@@ -383,9 +470,13 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void run() {
                         // 말하는 것을 듣지 않도록, onDone에서 Listening 시작.
-                        Log.d("Test: ", "ok3");
+//                        Log.d("Test: ", "ok3");
 //                        robot.askQuestion(".");
+                        robot.askQuestion(".");
                         robot.wakeup();
+                        whileTalking = true;
+                        mic.setVisibility(View.VISIBLE);
+
                     }
                 });
             }
@@ -403,28 +494,45 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void askQuestion(String question) {
-        conversation.setText(question);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                TtsText.setText(question);
+            }
+        });
+
         // QUEUE_FLUSH: 초기화하고 새로 넣는 것, QUEUE_ADD: 현재 말하는거 다음으로 대기.
-        ttsAskQuestion.speak(question, TextToSpeech.QUEUE_ADD, null, "question");
+        ttsAskQuestion.speak(question, TextToSpeech.QUEUE_FLUSH, null, "question");
     }
 
     private void speak(String sentence) {
-        conversation.setText(sentence);
-        ttsSpeak.speak(sentence, TextToSpeech.QUEUE_ADD, null,"speak");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                TtsText.setText(sentence);
+            }
+        });
+
+        ttsSpeak.speak(sentence, TextToSpeech.QUEUE_FLUSH, null,"speak");
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @androidx.annotation.Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode==1){
-            if(resultCode==RESULT_OK){
+        if (requestCode==1){
+            if (resultCode==RESULT_OK){
                 //데이터 받기
                 String teacher = data.getStringExtra("teacher");
                 String result = data.getStringExtra("result");
-                if(result.equals("Yes")) {
+                if (result.equals("Yes")) {
                     Log.d(TAG, "onActivityResult: goTo " + teacher);
-//                    robot.speak(TtsRequest.create(teacher + " 자리로 이동합니다.", true));
-                    speak(teacher + " 자리로 이동합니다.");
+//                    robot.setDetectionModeOn(false);
+
+                    if (language == Locale.KOREAN)
+                        speak(teacher + " 자리로 이동합니다.");
+                    else
+                        speak("Moving to location.");
+
                     robot.goTo(teacher);
                 }
             }
@@ -498,52 +606,63 @@ public class MainActivity extends AppCompatActivity implements
 
             // 테미가 이동하는 경우.
             if (intentName.equals("MoveTemi-Yes")){
-//                robot.speak(TtsRequest.create(teacherAt319_Name[indexOfTeacher] + " 선생님 자리로 " + botReply, true));
-                speak(teacherAt319_Name[indexOfTeacher] + " 선생님 자리로 이동합니다.");
+                if (language == Locale.KOREAN)
+                    speak(teacherAt319_Name[indexOfTeacher] + " 선생님 자리로 이동합니다.");
+                else
+                    speak(botReply);
+
                 robot.goTo(teacherAt319_Name[indexOfTeacher] + " 선생님");
             }
 
-            else if (botReply.contains("홈베이스")) {
-//                robot.speak(TtsRequest.create(botReply, true));
+            else if (intentName.equals("GoToHomeBase")) {
                 speak(botReply);
                 robot.goTo("home base");
             }
 
-            else if (botReply.contains("행정실 입구")) {
-//                robot.speak(TtsRequest.create(botReply, true));
+            else if (intentName.equals("GoToStandBy")) {
                 speak(botReply);
                 robot.goTo("행정실 입구");
             }
 
-            else if (botReply.equals("체온 측정")) { // 체온 측정하는 코드, Dialogflow에서 'Temperature_Check' 인텐트에 의한 리스폰스
+            else if (intentName.equals("TemperatureCheck")) { // 체온 측정하는 코드, Dialogflow에서 'Temperature_Check' 인텐트에 의한 리스폰스
                 ThermoCheck();
             }
 
-            else if (botReply.contains("날씨")){
-//                robot.speak(TtsRequest.create("날씨 정보를 알려드립니다.", true));
-                speak("날씨 정보를 알려드립니다.");
+            else if (botReply.contains("온도")){
+                speak(botReply);
                 Intent intent = new Intent(MainActivity.this, Web.class);
                 intent.putExtra("url", "https://weather.naver.com/today/09620735");
+                startActivity(intent);
+            }
+
+            else if (botReply.contains("소반")){
+                speak("오늘의 학식 메뉴를 알려드립니다.");
+                Intent intent = new Intent(MainActivity.this, PopupActivity2.class);
+                intent.putExtra("text", botReply);
                 startActivity(intent);
             }
 
             // 그 이외는 Dialogflow 답변을 그대로 읽어줌. 물음표 여부를 통해서 다음 대답을 받을지 판단 (추가적인 context로 추후 구분 가능성).
             else {
                 if (botReply.contains("?"))
-//                    robot.askQuestion(botReply);
                     askQuestion(botReply);
                 else {
                     if (botReply.contains("button"))
                         return;
                     else
                         speak(botReply);
-//                        robot.speak(TtsRequest.create(botReply, true));
                 }
             }
         } else {
             //Log.d(TAG, "Bot Reply: Null");
 //            robot.speak(TtsRequest.create("전송 오류가 있었습니다. 다시 시도해주시기 바랍니다.", true));
-            speak("전송 오류가 있었습니다. 다시 시도해주시기 바랍니다.");
+
+            if (language == Locale.KOREAN)
+                speak("전송 오류가 있었습니다. 다시 시도해주시기 바랍니다.");
+            else
+                speak("Error in sending request. Try again.");
+
+
         }
     }
 
@@ -571,22 +690,36 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void ThermoCheck(){
-//        robot.speak(TtsRequest.create("체온 측정 중입니다", true));
-        speak("체온 측정 중입니다.");
+        if (language == Locale.KOREAN)
+            speak("체온 측정 중입니다.");
+        else
+            speak("Checking temperature.");
+
         new Thread(new Runnable() {
             @Override
             public void run() {
                 double temp = send("start_measure");
                 temp = Math.round(temp * 100.0) / 100.0;
-                if (temp < 38.0)
-                    speak("체온이 "+temp+"º로 측정되었습니다.");
-//                    robot.speak(TtsRequest.create("체온이 "+temp+"º로 측정되었습니다.", true));
-                else if (temp < 50.0)
-                    speak(temp + "º. 위험 체온입니다. 출입을 불허합니다.");
-//                    robot.speak(TtsRequest.create(temp + "º. 위험 체온입니다. 출입을 불허합니다.", true));
-                else
-                    speak("측정을 방해하는 물체가 있습니다. 다른 각도에서 다시 시도해주시기 바랍니다.");
-//                    robot.speak(TtsRequest.create("측정을 방해하는 물체가 있습니다. 다른 각도에서 다시 시도해주시기 바랍니다.", true));
+                if (temp < 38.0){
+                    if (language == Locale.KOREAN)
+                        speak("체온이 " + temp + "º로 측정되었습니다.");
+                    else
+                        speak("You are " + temp + "degrees.");
+                }
+
+                else if (temp < 50.0){
+                    if (language == Locale.KOREAN)
+                        speak(temp + "º. 위험 체온입니다. 출입을 불허합니다.");
+                    else
+                        speak("You are " + temp + "degrees. Please do not enter.");
+                }
+
+                else {
+                    if (language == Locale.KOREAN)
+                        speak("측정을 방해하는 물체가 있습니다. 다른 각도에서 다시 시도해주시기 바랍니다.");
+                    else
+                        speak("There is something hindering the process. Please try again in another angle.");
+                }
             }
         }).start();
     }
@@ -611,16 +744,15 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onWakeupWord(@NotNull String wakeupWord, int direction) { // https://github.com/robotemi/sdk/wiki/Speech 참고
-        robot.stopMovement();
+//        robot.stopMovement();
     }
 
     //https://github.com/robotemi/sdk/wiki/Detection-&-Interaction
     // 0 - IDLE, 1 - LOST, 2 - ACTIVE.
     @Override
     public void onDetectionStateChanged(int state) {
-//        Log.d(TAG, "onDetectionStateChanged: " + state);
-        if(state == DETECTED) detected = true;
-        else if(state == OnDetectionStateChangedListener.IDLE) detected = false;
+        Log.d(TAG, "onDetectionStateChanged: " + state);
+        detect_state = state;
 
         // 새로운 사용자가 앞에 왔을 때.
         if (state == OnDetectionStateChangedListener.DETECTED && prev_state == OnDetectionStateChangedListener.IDLE) {
@@ -629,7 +761,12 @@ public class MainActivity extends AppCompatActivity implements
             // 대기 상태에 있으며, 대화를 하고 있지 않았을때만 인사한다.
             if (!whileTalking && atStandby) {
 //                Log.d(TAG, "New user detected at standby.");
-                chatInitialize("greeting");
+//                chatInitialize("greeting");
+//                dialog.show();
+//                if(language == Locale.KOREAN)
+//                    askQuestion("안녕하세요.\n무슨 일로 오셨나요?");
+//                else
+//                    askQuestion("Hi.\nHow can I help you?");
             }
         }
         prev_state = state;
@@ -638,64 +775,68 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onConversationStatusChanged(int status, @NotNull String text) { //https://github.com/robotemi/sdk/wiki/Speech 참고
 
-        if (status == 0) {  // "대화가 끝났을 때"
+        if (prev_conv_status == 1 && status ==0 || prev_conv_status == 2 && !whileTalking && status == 0) {  // "대화가 끝났을 때"
             Log.d(TAG, "onConvStatusChanged " + status);
-            whileTalking = false;
-            bar.setVisibility(View.INVISIBLE);
             mic.setVisibility(View.INVISIBLE);
-            conversation.setText(R.string.notice);
+            AsrText.setText("");
+            TtsText.setText("");
+            whileTalking = false;
+            if(prev_conv_status == 1) dialog.dismiss();
 
-            // 만약 모든 상호작용이 끝났고, 대기 장소나 홈 베이스가 아니면.
-            if (!moving && !atStandby && !atHome) {
-//                Log.d(TAG, "Countdown Started.");
+//            // 만약 모든 상호작용이 끝났고, 대기 장소나 홈 베이스가 아니면.
+//            if (!moving && !atStandby && !atHome) {
+////                Log.d(TAG, "Countdown Started.");
+//
+//                // 10초 countdown, 0.4초마다 tick 확인.
+//                new CountDownTimer(5000, 400) {
+//                    @Override
+//                    public void onTick(long millisUntilFinished) {
+//                        // 새로운 interaction이 시작되거나 대기 장소, 홈 베이스가 되면 취소.
+//                        if (whileTalking || moving || atStandby || atHome) {
+//                            cancel();
+////                            Log.d(TAG, "Countdown canceled because of new interaction.");
+//                        }
+//                    }
+//                    @Override
+//                    public void onFinish() { // 정상적으로 타이머가 끝나면, 대기 장소 자동 복귀.
+//                        Log.d(TAG, "Countdown finished, return to standby.");
+////                        robot.speak(TtsRequest.create("행정실 입구로 돌아갑니다.", true));
+//                        robot.goTo("행정실 입구");
+//                    }
+//                }.start();
+//            }
 
-                // 10초 countdown, 0.4초마다 tick 확인.
-                new CountDownTimer(5000, 400) {
-                    @Override
-                    public void onTick(long millisUntilFinished) {
-                        // 새로운 interaction이 시작되거나 대기 장소, 홈 베이스가 되면 취소.
-                        if (whileTalking || moving || atStandby || atHome) {
-                            cancel();
-//                            Log.d(TAG, "Countdown canceled because of new interaction.");
-                        }
-                    }
-                    @Override
-                    public void onFinish() { // 정상적으로 타이머가 끝나면, 대기 장소 자동 복귀.
-                        Log.d(TAG, "Countdown finished, return to standby.");
-//                        robot.speak(TtsRequest.create("행정실 입구로 돌아갑니다.", true));
-                        robot.goTo("행정실 입구");
-                    }
-                }.start();
-            }
+
         }
 
         if (status == 1) {  // Listening user's voice
+            Log.d(TAG, "onConversationStatusChanged: " + status + ": " + text);
             whileTalking = true;
             mic.setVisibility(View.VISIBLE);
-            bar.setVisibility(View.VISIBLE);
-            conversation.setText(text);
+            AsrText.setText(text);
         }
         if (status == 2) {  // NLP
             Log.d(TAG, "onConvStatusChanged " + status + ": " + text);
             whileTalking = true;
-            conversation.setText(text);
+            AsrText.setText(text);
         }
         if (status == 3) {  // Playing TTS
             Log.d(TAG, "onConvStatusChanged " + status + ": " + text);
             whileTalking = true;
             mic.setVisibility(View.INVISIBLE);
-            bar.setVisibility(View.INVISIBLE);
-            conversation.setText(text);
         }
+        prev_conv_status = status;
     }
 
     // START, CALCULATING, GOING, COMPLETE, ABORT.
     @Override
     public void onGoToLocationStatusChanged(@NotNull String location, @NotNull String status, int descriptionID, @NotNull String description) { //https://github.com/robotemi/sdk/wiki/Locations 참고
         atStandby = false; // 일단 뭔가 status 변화가 있으면, 인사 안하도록.
-        atHome = false; // 이동 상태가 변하면 대기 장소나 홈 베이스에서 벗어나게 됨
 //        robot.setDetectionModeOn(false);
-//        robot.stopFaceRecognition();
+//        robot.setAutoReturnOn(true);
+        atHome = false; // 이동 상태가 변하면 대기 장소나 홈 베이스에서 벗어나게 됨
+        TtsText.setText("");
+//        robot.setDetectionModeOn(false);
 //        Log.d(TAG, "atStandby is false");
 
         if (status.equals(OnGoToLocationStatusChangedListener.START)) moving = true;
@@ -706,19 +847,29 @@ public class MainActivity extends AppCompatActivity implements
             // Standby에 도착한 경우, 다시 인사 하도록 변수 설정.
             if (location.equals("행정실 입구")) {
                 atStandby = true;
+//                robot.setAutoReturnOn(false);
+//                robot.setDetectionModeOn(true, 0.5f);
+
 //                robot.setDetectionModeOn(true);
-//                robot.startFaceRecognition();
 //                Log.d(TAG, "atStandby is true");
             }
 
             else if (location.equals("home base")) {
                 atHome = true;
-                robot.speak(TtsRequest.create("홈베이스에 도착했습니다.", true));
+
+                if (language == Locale.KOREAN)
+                    speak("홈베이스에 도착했습니다.");
+                else
+                    speak("Arrived at home base.");
             }
 
             // 선생님 자리에 도착.
-            else
-                robot.speak(TtsRequest.create("도착했습니다. 다른 용무가 있으시면 대화시작 버튼을 눌러주세요.", true));
+            else {
+                if (language == Locale.KOREAN)
+                    speak("도착했습니다. 다른 용무가 있으시면 말을 걸거나 버튼을 눌러주세요.");
+                else
+                    speak("Arrived at location. Please call me or press button to continue.");
+            }
         }
 
         else if (status.equals(OnGoToLocationStatusChangedListener.ABORT)) {
@@ -754,20 +905,5 @@ public class MainActivity extends AppCompatActivity implements
 //            }.start();
 //
 //        }
-    }
-
-    @Override
-    public void onBatteryStatusChanged(@Nullable BatteryData batteryData) { // 배터리 효율이 안좋아서 사용할 일 없을듯
-//        Log.d(TAG, "onBatteryStatusChanged: " + batteryData);
-//        if (batteryData.component2() == true && batteryData.component1() == 100) {
-//            robot.speak(TtsRequest.create("충전이 완료되었습니다.", true));
-//            robot.goTo("행정실 입구");
-//        }
-    }
-
-    @Override
-    public void onFaceRecognized(@Nullable List<ContactModel> list) {
-        Log.d(TAG, "onFaceRecognized: " + list);
-
     }
 }

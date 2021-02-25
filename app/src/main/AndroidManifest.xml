@@ -4,10 +4,13 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-feature android:name="android.hardware.camera.any" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
-        android:hardwareAccelerated="false"
         android:largeHeap="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -29,6 +32,10 @@
         <meta-data
             android:name="@string/metadata_override_conversation_layer"
             android:value="true" />
+        <meta-data
+            android:name="@string/metadata_permissions"
+            android:value="com.robotemi.permission.settings,
+                       com.robotemi.permission.face_recognition" />
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -41,6 +48,8 @@
         <activity android:name=".Weather"/>
         <activity android:name=".PopupActivity" android:theme="@style/Theme.MyDialog"/>
         <activity android:name=".PopupActivity2" android:theme="@style/Theme.MyDialog"/>
+        <activity android:name=".PopupActivityEn" android:theme="@style/Theme.MyDialog"/>
+        <activity android:name=".PopupActivity2En" android:theme="@style/Theme.MyDialog"/>
     </application>
 
 </manifest>

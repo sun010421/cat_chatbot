@@ -41,8 +41,8 @@ public class FragmentSecondEn extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.chatInitialize("Press scholarship button");
-                Intent intent = new Intent(getActivity(), PopupActivity2.class);
-                intent.putExtra("text", getString(R.string.apply));
+                Intent intent = new Intent(getActivity(), PopupActivity2En.class);
+                intent.putExtra("text", getString(R.string.scholarship_en));
                 startActivity(intent);
             }
         });
@@ -52,9 +52,9 @@ public class FragmentSecondEn extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.chatInitialize("Press graduation button");
-                Intent intent = new Intent(getActivity(), PopupActivity.class);
+                Intent intent = new Intent(getActivity(), PopupActivityEn.class);
                 intent.putExtra("teacher", getString(R.string.sonsy));
-                intent.putExtra("text", getString(R.string.graduation));
+                intent.putExtra("text", getString(R.string.graduation_en));
                 getActivity().startActivityForResult(intent, 1);
             }
         });
@@ -64,8 +64,8 @@ public class FragmentSecondEn extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.chatInitialize("Press locker button");
-                Intent intent = new Intent(getActivity(), PopupActivity2.class);
-                intent.putExtra("text", getString(R.string.locker));
+                Intent intent = new Intent(getActivity(), PopupActivity2En.class);
+                intent.putExtra("text", getString(R.string.locker_en));
                 startActivity(intent);
             }
         });
@@ -75,9 +75,9 @@ public class FragmentSecondEn extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.chatInitialize("Press grade button");
-                Intent intent = new Intent(getActivity(), PopupActivity.class);
+                Intent intent = new Intent(getActivity(), PopupActivityEn.class);
                 intent.putExtra("teacher", getString(R.string.yooey));
-                intent.putExtra("text", getString(R.string.grade));
+                intent.putExtra("text", getString(R.string.grade_en));
                 getActivity().startActivityForResult(intent, 1);
             }
         });
@@ -87,9 +87,9 @@ public class FragmentSecondEn extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.chatInitialize("Press apply button");
-                Intent intent = new Intent(getActivity(), PopupActivity.class);
+                Intent intent = new Intent(getActivity(), PopupActivityEn.class);
                 intent.putExtra("teacher", getString(R.string.yooey));
-                intent.putExtra("text", getString(R.string.apply));
+                intent.putExtra("text", getString(R.string.apply_en));
                 getActivity().startActivityForResult(intent, 1);
             }
         });
@@ -99,9 +99,9 @@ public class FragmentSecondEn extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.chatInitialize("Press curriculum button");
-                Intent intent = new Intent(getActivity(), PopupActivity.class);
+                Intent intent = new Intent(getActivity(), PopupActivityEn.class);
                 intent.putExtra("teacher", getString(R.string.yooey));
-                intent.putExtra("text", getString(R.string.curriculum));
+                intent.putExtra("text", getString(R.string.curriculum_en));
                 getActivity().startActivityForResult(intent, 1);
             }
         });
@@ -111,9 +111,9 @@ public class FragmentSecondEn extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.chatInitialize("Press lab button");
-                Intent intent = new Intent(getActivity(), PopupActivity.class);
+                Intent intent = new Intent(getActivity(), PopupActivityEn.class);
                 intent.putExtra("teacher", getString(R.string.kimma));
-                intent.putExtra("text", getString(R.string.lab));
+                intent.putExtra("text", getString(R.string.lab_en));
                 getActivity().startActivityForResult(intent, 1);
             }
         });
@@ -123,8 +123,8 @@ public class FragmentSecondEn extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.chatInitialize("Press certificate button");
-                Intent intent = new Intent(getActivity(), PopupActivity2.class);
-                intent.putExtra("text", "증명서 발급은 행정실 입구 오른쪽에 있는 노트북을 사용해주세요.\n마이스누 - 학사정보 - 증명/확인서 탭에서 발급 받으실 수 있습니다.");
+                Intent intent = new Intent(getActivity(), PopupActivity2En.class);
+                intent.putExtra("text", getString(R.string.certificate_en));
                 startActivity(intent);
             }
         });

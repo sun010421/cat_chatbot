@@ -36,8 +36,8 @@
             android:tint="#8B00FF"
             android:background="@drawable/home_button_selector" />
         <Button
-            android:id="@+id/reinit"
-            android:layout_marginLeft="270dp"
+            android:id="@+id/start_talking_btn"
+            android:layout_marginLeft="280dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/custom_button_selector2"
@@ -45,7 +45,8 @@
             android:paddingHorizontal="20dp"
             android:drawableLeft="@drawable/play_left"
             android:drawablePadding="10dp"
-            android:text="@string/reinit"
+            android:drawableTint="#49DB8A"
+            android:text="@string/start_talking"
             android:textColor="@color/text_color"
             android:textSize="25sp" />
         <Button
@@ -58,6 +59,7 @@
             android:textColor="@color/text_color"
             android:drawableLeft="@drawable/stop_left"
             android:drawablePadding="10dp"
+            android:drawableTint="#49DB8A"
             android:background="@drawable/custom_button_selector2"
             android:paddingHorizontal="20dp" />
         <Button
@@ -66,19 +68,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/nanumsquare_bold"
-            android:textColor="#8B00FF"
+            android:textColor="@color/text_color2"
             android:background="#00ff0000"
             android:text="English"
+            android:textSize="20sp"
+            android:onClick="setEnglish"
             />
         <Button
             android:id="@+id/korean_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/nanumsquare_bold"
-            android:textColor="#8B00FF"
+            android:textColor="@color/text_color2"
             android:background="#00ff0000"
             android:text="한국어"
+            android:textSize="20sp"
+            android:onClick="setKorean"
             />
+
 
     </LinearLayout>
 
@@ -87,33 +94,18 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_gravity="center"
-        android:gravity="bottom"
-        android:translationX="-20dp"
         >
-        <ImageView
-            android:id="@+id/mic"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            app:srcCompat="@drawable/mic_top" />
         <TextView
-            android:id="@+id/conversation"
+            android:id="@+id/notice"
             android:layout_width="900dp"
             android:layout_height="60dp"
             android:fontFamily="@font/nanumsquare_bold"
             android:textSize="25sp"
             android:textColor="@color/black"
-            android:gravity="center|bottom"
+            android:gravity="center"
             />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/speak_bar"
-        android:layout_width="900dp"
-        android:layout_height="3dp"
-        android:layout_marginVertical="10dp"
-        android:layout_gravity="center"
-        android:background="#03DAC5" />
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="@dimen/frameSize"
