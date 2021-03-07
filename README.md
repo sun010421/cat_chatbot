@@ -33,7 +33,14 @@ Back end - 질문과 대답의 정보 전달, Dialogflow agent, Web hook.
 
 제공하는 버튼:
 
-(사진)
+> Page1
+
+![image](https://user-images.githubusercontent.com/31657141/110230649-cccf0880-7f55-11eb-95ac-10b19f5ed1f4.png)
+
+
+> Page2
+
+![image](https://user-images.githubusercontent.com/31657141/110230651-d0628f80-7f55-11eb-86b3-a0eaf9090afd.png)
 
 
 
@@ -53,16 +60,19 @@ Back end - 질문과 대답의 정보 전달, Dialogflow agent, Web hook.
 
 - 테미에 설치된 앱(Dialogflow agent 연동)은 테미가 Wifi에 연결되어 있어야만 사용 가능하다.
 
+<br>
 
 - 테미의 출근 (대기) 장소는 행정실 입구 근처이다.
 
 - 테미의 퇴근 장소는 홈베이스가 있는 행정실 입구 근처이다.
 
+<br>
 
 - 테미는 주중에 자동으로 9시에 출근하고, 5시에 퇴근한다.
 
 - 배터리가 15% 아래로 떨어지면 홈베이스로 퇴근하고, 완전히 충전된 후에 다시 행정실 입구로 출근한다.
 
+<br>
 
 - 관리자를 위해 아래와 같이 앱 상단에 출근 및 퇴근 버튼을 배치한다.
 
@@ -82,28 +92,55 @@ Back end - 질문과 대답의 정보 전달, Dialogflow agent, Web hook.
 <br>
 
 - 행정실, 학생센터, 전산실, 새장, 과방 등 건물 내 중요 위치 안내
+
 - 화장실, 정수기 위치 안내
 
+<br>
 
 - 증명서 발급, 우편물 확인 안내
+
 - 전기정보공학부 간략한 소개
 
+<br>
 
 - 오늘의 날씨 안내 (Web hook)
+
 - 윗공대 학식 안내 (Web hook)
+
 - 네이버 백과사전 연동 (Web hook)
 
+<br>
 
 - 자연스러운 일상 대화의 가능 (Small talk)
 
+<br>
 
 - 다국어 설정 (한국어, 영어 선택 가능)
 
-(사진)
+언어 설정 버튼:
+
+![image](https://user-images.githubusercontent.com/31657141/110230731-38b17100-7f56-11eb-86ee-1912a71cedc9.png)
+
+영어 설정 시 버튼:
+
+> Page1
+
+![image](https://user-images.githubusercontent.com/31657141/110230750-54b51280-7f56-11eb-8dcc-2f21d3f87685.png)
+
+
+
+> Page2
+
+![image](https://user-images.githubusercontent.com/31657141/110230754-5aaaf380-7f56-11eb-90ba-ae77b8292261.png)
+
+
+
 
 #### 이외의 추가 기능
 
 - 전기정보공학부 홈페이지, 구글 날씨, 행정실 선생님 연락처 페이지 링크
+
+<br>
 
 - 사용자 체온 측정 및 마스크 착용 여부 감지 기능 (테미와 연동된 테블릿 pc에서 구현)
 
