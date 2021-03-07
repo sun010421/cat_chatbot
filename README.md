@@ -33,12 +33,12 @@ Back end - 질문과 대답의 정보 전달, Dialogflow agent, Web hook.
 
 제공하는 버튼:
 
-> Page1
+> Page1 button
 
 ![image](https://user-images.githubusercontent.com/31657141/110230649-cccf0880-7f55-11eb-95ac-10b19f5ed1f4.png)
 
 
-> Page2
+> Page2 button
 
 ![image](https://user-images.githubusercontent.com/31657141/110230651-d0628f80-7f55-11eb-86b3-a0eaf9090afd.png)
 
@@ -47,6 +47,10 @@ Back end - 질문과 대답의 정보 전달, Dialogflow agent, Web hook.
 - 대화가 끝나거나 멈추면, 대화시작 버튼을 누르거나 "헤이 테미"라고 말을 걸어 대화를 이어한다.
 
 - 대화나 음성을 종료하고 싶으면, 대화중지 버튼을 누른다.
+
+대화시작 및 대화중지 버튼:
+
+![image](https://user-images.githubusercontent.com/31657141/110230791-d4db7800-7f56-11eb-88c4-333d61b5476b.png)
 
 - 사용자와의 상호작용이 끝나고 5초간 변화가 없는 경우 테미는 행정실 입구로 자동 복귀한다.
 
@@ -62,6 +66,12 @@ Back end - 질문과 대답의 정보 전달, Dialogflow agent, Web hook.
 
 <br>
 
+- 관리자를 위해 아래와 같이 앱 상단에 출근 및 퇴근 버튼을 배치한다.
+
+![image](https://user-images.githubusercontent.com/31657141/110227400-8c629100-7f3b-11eb-9b4a-d189d23f2dbf.png)
+
+<br>
+
 - 테미의 출근 (대기) 장소는 행정실 입구 근처이다.
 
 - 테미의 퇴근 장소는 홈베이스가 있는 행정실 입구 근처이다.
@@ -71,12 +81,6 @@ Back end - 질문과 대답의 정보 전달, Dialogflow agent, Web hook.
 - 테미는 주중에 자동으로 9시에 출근하고, 5시에 퇴근한다.
 
 - 배터리가 15% 아래로 떨어지면 홈베이스로 퇴근하고, 완전히 충전된 후에 다시 행정실 입구로 출근한다.
-
-<br>
-
-- 관리자를 위해 아래와 같이 앱 상단에 출근 및 퇴근 버튼을 배치한다.
-
-![image](https://user-images.githubusercontent.com/31657141/110227400-8c629100-7f3b-11eb-9b4a-d189d23f2dbf.png)
 
 * * *
 ### [안내로봇 총 기능 정리]
@@ -123,17 +127,15 @@ Back end - 질문과 대답의 정보 전달, Dialogflow agent, Web hook.
 
 영어 설정 시 버튼:
 
-> Page1
+> Page1 button
 
 ![image](https://user-images.githubusercontent.com/31657141/110230750-54b51280-7f56-11eb-8dcc-2f21d3f87685.png)
 
 
 
-> Page2
+> Page2 button
 
 ![image](https://user-images.githubusercontent.com/31657141/110230754-5aaaf380-7f56-11eb-90ba-ae77b8292261.png)
-
-
 
 
 #### 이외의 추가 기능
@@ -144,7 +146,7 @@ Back end - 질문과 대답의 정보 전달, Dialogflow agent, Web hook.
 
 - 사용자 체온 측정 및 마스크 착용 여부 감지 기능 (테미와 연동된 테블릿 pc에서 구현)
 
-(사진)
+(사진 추가)
 
 
 
