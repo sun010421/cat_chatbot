@@ -16,9 +16,8 @@
 5. Response 받기가 완료되면 callback 함수가 실행되며 여기서 필요한 response 정보를 정리 및 처리한다.
 
 6. 안드로이드 TTS (Text to Speech)로 사용자에게 최종 대답을 하고,  필요한 경우 테미가 이동하도록 테미 SDK를 통해 지시한다.
- 
 
-
+<br>
 Front end - UI, 사용자 인식, 테미의 이동 및 대답, 음성인식.
 
 Back end - 질문과 대답의 정보 전달, Dialogflow agent, Web hook.
