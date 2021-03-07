@@ -74,7 +74,9 @@ Back end - 질문과 대답의 정보 전달, Dialogflow agent, Web hook.
 #### Dialogflow agent 상의 기능
 
 - 업무에 따는 행정실 선생님 자리 안내
+
 - 성함에 따른 행정실 선생님 자리 안내
+
 - 행정실 선생님 부재 여부의 확인 (Web hook)
 
 <br>
