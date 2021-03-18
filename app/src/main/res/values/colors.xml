@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorAccent">#03DAC5</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#1A000000</color>
+    <!--
+    투명도
+    100% — FF
+    90% — E6
+    80% — CC
+    70% — B3
+    60% — 99
+    50% — 80
+    40% — 66
+    30% — 4D
+    20% — 33
+    10% — 1A
+    0% — 00
+    -->
+</resources>
