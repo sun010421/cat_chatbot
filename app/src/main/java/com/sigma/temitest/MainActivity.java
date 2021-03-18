@@ -1,5 +1,6 @@
 // alert 관련해서 없앰.
 // whileTalking, atStandby 현재 실질적으로 사용 안함.
+// Test
 
 package com.sigma.temitest;
 
