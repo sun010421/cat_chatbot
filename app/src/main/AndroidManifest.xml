@@ -48,8 +48,10 @@
         <activity android:name=".Weather"/>
         <activity android:name=".PopupActivity" android:theme="@style/Theme.MyDialog"/>
         <activity android:name=".PopupActivity2" android:theme="@style/Theme.MyDialog"/>
+        <activity android:name=".PopupActivity3" android:theme="@style/Theme.MyDialog"/>
         <activity android:name=".PopupActivityEn" android:theme="@style/Theme.MyDialog"/>
         <activity android:name=".PopupActivity2En" android:theme="@style/Theme.MyDialog"/>
+        <activity android:name=".PopupActivity3En" android:theme="@style/Theme.MyDialog"/>
     </application>
 
 </manifest>

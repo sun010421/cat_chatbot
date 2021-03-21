@@ -16,8 +16,7 @@
             android:stretchColumns="*">
             <TableRow
                 android:layout_width="0dp"
-                android:layout_weight="1"
-                >
+                android:layout_weight="1">
                 <Button
                     android:id="@+id/scholarship_btn"
                     android:layout_width="wrap_content"
@@ -59,7 +58,7 @@
                     android:layout_gravity="center"
                     android:paddingBottom="15dp"
                     android:paddingTop="15dp"
-                    android:paddingHorizontal="37dp"
+                    android:paddingHorizontal="40dp"
                     android:drawableTop="@drawable/locker_top"
                     android:drawablePadding="20dp"
                     android:drawableTint="#8B00FF"
@@ -98,7 +97,7 @@
                     android:layout_gravity="center"
                     android:paddingBottom="15dp"
                     android:paddingTop="15dp"
-                    android:paddingHorizontal="26dp"
+                    android:paddingHorizontal="40dp"
                     android:drawableTop="@drawable/apply_top"
                     android:drawablePadding="20dp"
                     android:drawableTint="#8B00FF"

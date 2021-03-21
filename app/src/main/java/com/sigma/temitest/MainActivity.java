@@ -1,7 +1,3 @@
-// alert 관련해서 없앰.
-// whileTalking, atStandby 현재 실질적으로 사용 안함.
-// Test
-
 package com.sigma.temitest;
 
 import androidx.annotation.NonNull;
@@ -76,11 +72,11 @@ public class MainActivity extends AppCompatActivity implements
 
     private boolean whileTalking; // 사용자와 대화 중인지.
     private boolean atStandby; // 대기 장소인지 여부.
-    private boolean atHome; // 홈 베이스인지 여부
+    private boolean atHome; // 홈 베이스인지 여부.
     private boolean moving; // 이동중 여부.
-    private boolean interacting; // 상호작용 여부
-    private boolean touching; // 터치 여부
-    int detect_state; // 사람 감지 여부
+    private boolean interacting; // 상호작용 여부.
+    private boolean touching; // 터치 여부.
+    int detect_state; // 사람 감지 여부.
 
     private TextToSpeech ttsSpeak;
     private TextToSpeech ttsAskQuestion;
@@ -568,6 +564,39 @@ public class MainActivity extends AppCompatActivity implements
                 startActivity(intent);
             }
 
+            else if (intentName.equals("Question_Access")) {
+                speakWithLan("출입등록 방법을 안내해드립니다.", "Follow the instructions to register access.");
+                Intent intent;
+                if (language == Locale.KOREAN)
+                    intent = new Intent(MainActivity.this, PopupActivity3.class);
+                else
+                    intent = new Intent(MainActivity.this, PopupActivity3En.class);
+                intent.putExtra("access", botReply);
+                startActivity(intent);
+            }
+
+            else if (intentName.equals("Question_Certificate")) {
+                speakWithLan("증명서 발급 방법을 안내해드립니다.", "Follow the instructions to print your certificate.");
+                Intent intent;
+                if (language == Locale.KOREAN)
+                    intent = new Intent(MainActivity.this, PopupActivity3.class);
+                else
+                    intent = new Intent(MainActivity.this, PopupActivity3En.class);
+                intent.putExtra("mysnu", botReply);
+                startActivity(intent);
+            }
+
+            else if (intentName.equals("Question_Locker")) {
+                speakWithLan("사물함 신청 방법을 안내해드립니다.", "Follow the instructions to apply for a locker.");
+                Intent intent;
+                if (language == Locale.KOREAN)
+                    intent = new Intent(MainActivity.this, PopupActivity3.class);
+                else
+                    intent = new Intent(MainActivity.this, PopupActivity3En.class);
+                intent.putExtra("locker", botReply);
+                startActivity(intent);
+            }
+
             // 그 이외는 Dialogflow 답변을 그대로 읽어줌. 물음표 여부를 통해서 다음 대답을 받을지 판단 (추가적인 context로 추후 구분 가능성).
             else {
                 if (botReply.contains("?"))
@@ -683,9 +712,11 @@ public class MainActivity extends AppCompatActivity implements
     // START, CALCULATING, GOING, COMPLETE, ABORT.
     @Override
     public void onGoToLocationStatusChanged(@NotNull String location, @NotNull String status, int descriptionID, @NotNull String description) { //https://github.com/robotemi/sdk/wiki/Locations 참고
+        Log.d("Test: ", location + " " + status);
+
         atStandby = false; // 일단 뭔가 status 변화가 있으면, 인사 안하도록.
         atHome = false; // 이동 상태가 변하면 대기 장소나 홈 베이스에서 벗어나게 됨
-        robot.setAutoReturnOn(true);
+        //robot.setAutoReturnOn(true);
         TtsText.setText("");
 
         if (status.equals(OnGoToLocationStatusChangedListener.START)) moving = true;
@@ -697,8 +728,10 @@ public class MainActivity extends AppCompatActivity implements
             if (location.equals("행정실 입구")) {
                 atStandby = true;
             } else if (location.equals("home base")) {
+                Log.d("Test: ", "ok");
                 atHome = true;
                 robot.setAutoReturnOn(false);
+                Log.d("Test: ", String.valueOf(robot.isAutoReturnOn())); // 제대로 동작.
                 speakWithLan("홈베이스에 도착했습니다.", "Arrived at home base.");
 
             }

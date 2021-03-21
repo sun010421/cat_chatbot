@@ -64,8 +64,8 @@ public class FragmentSecondEn extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.sendRequest("Press locker button");
-                Intent intent = new Intent(getActivity(), PopupActivity2En.class);
-                intent.putExtra("text", getString(R.string.locker_en));
+                Intent intent = new Intent(getActivity(), PopupActivity3En.class);
+                intent.putExtra("locker", getString(R.string.locker_en));
                 startActivity(intent);
             }
         });
@@ -123,8 +123,8 @@ public class FragmentSecondEn extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.sendRequest("Press certificate button");
-                Intent intent = new Intent(getActivity(), PopupActivity2En.class);
-                intent.putExtra("text", getString(R.string.certificate_en));
+                Intent intent = new Intent(getActivity(), PopupActivity3En.class);
+                intent.putExtra("mysnu", getString(R.string.certificate_en));
                 startActivity(intent);
             }
         });
