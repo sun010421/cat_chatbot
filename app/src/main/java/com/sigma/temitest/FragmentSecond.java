@@ -67,8 +67,8 @@ public class FragmentSecond extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.sendRequest("Press locker button");
-                Intent intent = new Intent(getActivity(), PopupActivity2.class);
-                intent.putExtra("text", getString(R.string.locker));
+                Intent intent = new Intent(getActivity(), PopupActivity3.class);
+                intent.putExtra("locker", getString(R.string.locker));
                 startActivity(intent);
             }
         });
@@ -126,8 +126,8 @@ public class FragmentSecond extends Fragment {
             @Override
             public void onClick(View v) {
                 mainActivity.sendRequest("Press certificate button");
-                Intent intent = new Intent(getActivity(), PopupActivity2.class);
-                intent.putExtra("text", "증명서 발급은 행정실 입구 오른쪽에 있는 노트북을 사용해주세요.\n마이스누 - 학사정보 - 증명/확인서 탭에서 발급 받으실 수 있습니다.");
+                Intent intent = new Intent(getActivity(), PopupActivity3.class);
+                intent.putExtra("mysnu", getString(R.string.certificate));
                 startActivity(intent);
             }
         });

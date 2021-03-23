@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/rounded"
+    android:orientation="vertical"
+    android:layout_width="1000dp"
+    android:layout_height="700dp"
+    android:layout_gravity="center">
+
+    <!-- Notice -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="630dp">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/popupText"
+            android:layout_width="1000dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="20dp"
+            android:gravity="center"
+            android:textColor="#000"
+            android:textSize="21sp"
+            android:fontFamily="@font/nanumsquare_bold"/>
+    </FrameLayout>
+    <!-- Notice -->
+
+    <!-- 닫기 버튼 -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <Button
+            android:id="@+id/ok_btn"
+            android:text="@string/Ok_en"
+            android:textSize="20sp"
+            android:textColor="#000"
+            android:fontFamily="@font/nanumsquare_bold"
+            android:gravity="center"
+            android:background="@drawable/popup_button_center"
+            android:layout_width="match_parent"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:onClick="Ok"/>
+    </LinearLayout>
+    <!--// 닫기 버튼 -->
+</LinearLayout>
