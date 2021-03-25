@@ -33,15 +33,15 @@ public class PopupActivity3En extends AppCompatActivity {
 
         if (locker != null) {
             popupText.setText(locker);
-            popupImage3.setImageDrawable(getResources().getDrawable(R.drawable.locker_apply, null));
+            popupImage3.setImageDrawable(getResources().getDrawable(R.drawable.picture_locker, null));
         }
         else if (mysnu != null) {
             popupText.setText(mysnu);
-            popupImage3.setImageDrawable(getResources().getDrawable(R.drawable.mysnu, null));
+            popupImage3.setImageDrawable(getResources().getDrawable(R.drawable.picture_certificate, null));
         }
         else if (access != null) {
             popupText.setText(access);
-            popupImage3.setImageDrawable(getResources().getDrawable(R.drawable.access, null));
+            popupImage3.setImageDrawable(getResources().getDrawable(R.drawable.picture_access, null));
         }
     }
 

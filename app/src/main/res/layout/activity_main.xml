@@ -24,7 +24,7 @@
                 android:layout_marginLeft="20dp"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
-                android:background="@drawable/home_button_selector"
+                android:background="@drawable/custom_roundbutton_selector"
                 android:src="@drawable/work_top"
                 android:tint="#0c7bae" />
 
@@ -33,7 +33,7 @@
                 android:layout_marginLeft="20dp"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
-                android:background="@drawable/home_button_selector"
+                android:background="@drawable/custom_roundbutton_selector"
                 android:src="@drawable/home_top"
                 android:tint="#0c7bae" />
 
@@ -42,8 +42,17 @@
                 android:layout_marginLeft="20dp"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
-                android:background="@drawable/home_button_selector"
+                android:background="@drawable/custom_roundbutton_selector"
                 android:src="@drawable/thermometer_top"
+                android:tint="#0c7bae" />
+
+            <ImageButton
+                android:id="@+id/change_btn"
+                android:layout_marginLeft="20dp"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:background="@drawable/custom_roundbutton_selector"
+                android:src="@drawable/change_top"
                 android:tint="#0c7bae" />
 
         </LinearLayout>
@@ -51,14 +60,14 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
+            android:layout_weight="2"
             android:gravity="center">
 
             <Button
                 android:id="@+id/start_talking_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/custom_button_selector2"
+                android:background="@drawable/custom_button_selector"
                 android:drawableLeft="@drawable/play_left"
                 android:drawablePadding="10dp"
                 android:drawableTint="#49DB8A"
@@ -72,7 +81,7 @@
                 android:id="@+id/stop_talking_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/custom_button_selector2"
+                android:background="@drawable/custom_button_selector"
                 android:drawableLeft="@drawable/stop_left"
                 android:drawablePadding="10dp"
                 android:drawableTint="#49DB8A"
@@ -95,12 +104,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="35dp"
                 android:layout_gravity="center_horizontal"
-                android:background="@drawable/custom_button_selector3"
+                android:background="@drawable/custom_button_selector"
                 android:fontFamily="@font/nanumsquare_bold"
                 android:onClick="setLanguage"
                 android:text="English"
                 android:textColor="#0c7bae"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
         </LinearLayout>
 
     </LinearLayout>

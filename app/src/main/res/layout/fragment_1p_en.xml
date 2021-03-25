@@ -30,7 +30,7 @@
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
                     android:text="@string/homepage_btn_en"
-                    android:textSize="@dimen/buttonText"
+                    android:textSize="@dimen/buttonText_en"
                     android:textColor="@color/text_color"
                     android:background="@drawable/custom_button_selector"
                     />
@@ -47,7 +47,7 @@
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
                     android:text="@string/building_btn_en"
-                    android:textSize="@dimen/buttonText"
+                    android:textSize="@dimen/buttonText_en"
                     android:textColor="@color/text_color"
                     android:background="@drawable/custom_button_selector"
                     />
@@ -64,7 +64,7 @@
                     android:drawableTint="#8B00FF"
                     android:fontFamily="@font/nanumsquare_bold"
                     android:text="@string/map_btn_en"
-                    android:textSize="@dimen/buttonText"
+                    android:textSize="@dimen/buttonText_en"
                     android:textColor="@color/text_color"
                     android:background="@drawable/custom_button_selector"
                     />
