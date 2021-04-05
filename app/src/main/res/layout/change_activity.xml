@@ -4,16 +4,89 @@
     android:layout_height="match_parent">
 
     <RelativeLayout
-        android:layout_width="1200dp"
+        android:layout_width="match_parent"
+        android:layout_height="695dp"
         android:layout_marginLeft="@dimen/pageMarginAndOffset"
         android:layout_marginRight="@dimen/pageMarginAndOffset"
-        android:layout_height="@dimen/frameSize"
+        android:layout_marginTop="45dp"
         android:orientation="vertical">
 
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:stretchColumns="*">
+
+            <TextView
+                android:id="@+id/activity_name"
+                android:layout_width="900dp"
+                android:layout_height="30dp"
+                android:fontFamily="@font/nanumsquare_bold"
+                android:gravity="center"
+                android:text="*편집 화면*"
+                android:textColor="@color/black"
+                android:textSize="@dimen/buttonText" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="60dp">
+
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center">
+
+                    <Button
+                        android:id="@+id/save"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:fontFamily="@font/nanumsquare_bold"
+                        android:text="메인 화면에 저장"
+                        android:textSize="21dp"
+                        android:paddingHorizontal="20dp"
+                        android:textColor="#9E2525"
+                        android:background="@drawable/custom_button_selector" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_weight="2"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/notice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumsquare_bold"
+                        android:layout_gravity="center"
+                        android:text="버튼을 클릭해서 화면 구성을 바꿔보세요"
+                        android:textColor="@color/black"
+                        android:textSize="26dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center">
+                    <Button
+                        android:id="@+id/close"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:fontFamily="@font/nanumsquare_bold"
+                        android:text="종료"
+                        android:textSize="21dp"
+                        android:paddingHorizontal="20dp"
+                        android:textColor="@color/text_color"
+                        android:background="@drawable/custom_button_selector" />
+                </LinearLayout>
+            </LinearLayout>
+
             <TableRow
                 android:layout_width="0dp"
                 android:layout_weight="1">
@@ -28,11 +101,11 @@
                     android:paddingHorizontal="40dp"
                     android:drawableTop="@drawable/scholarship_top"
                     android:drawablePadding="20dp"
-                    android:drawableTint="#8B00FF"
+                    android:drawableTint="#D29CFF"
                     android:fontFamily="@font/nanumsquare_bold"
                     android:text=""
                     android:textSize="@dimen/buttonText"
-                    android:textColor="@color/text_color"
+                    android:textColor="#6E6E6E"
                     android:background="@drawable/custom_button_selector"
                     />
                 <Button
@@ -45,11 +118,11 @@
                     android:paddingHorizontal="40dp"
                     android:drawableTop="@drawable/scholarship_top"
                     android:drawablePadding="20dp"
-                    android:drawableTint="#8B00FF"
+                    android:drawableTint="#D29CFF"
                     android:fontFamily="@font/nanumsquare_bold"
                     android:text=""
                     android:textSize="@dimen/buttonText"
-                    android:textColor="@color/text_color"
+                    android:textColor="#6E6E6E"
                     android:background="@drawable/custom_button_selector"
                     />
                 <Button
@@ -62,11 +135,11 @@
                     android:paddingHorizontal="40dp"
                     android:drawableTop="@drawable/scholarship_top"
                     android:drawablePadding="20dp"
-                    android:drawableTint="#8B00FF"
+                    android:drawableTint="#D29CFF"
                     android:fontFamily="@font/nanumsquare_bold"
                     android:text=""
                     android:textSize="@dimen/buttonText"
-                    android:textColor="@color/text_color"
+                    android:textColor="#6E6E6E"
                     android:background="@drawable/custom_button_selector"
                     />
                 <Button
@@ -79,11 +152,11 @@
                     android:paddingHorizontal="40dp"
                     android:drawableTop="@drawable/scholarship_top"
                     android:drawablePadding="20dp"
-                    android:drawableTint="#8B00FF"
+                    android:drawableTint="#D29CFF"
                     android:fontFamily="@font/nanumsquare_bold"
                     android:text=""
                     android:textSize="@dimen/buttonText"
-                    android:textColor="@color/text_color"
+                    android:textColor="#6E6E6E"
                     android:background="@drawable/custom_button_selector"
                     />
             </TableRow>
@@ -91,7 +164,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 >
-               <Button
+                <Button
                     android:id="@+id/button5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -101,11 +174,11 @@
                     android:paddingHorizontal="40dp"
                     android:drawableTop="@drawable/scholarship_top"
                     android:drawablePadding="20dp"
-                    android:drawableTint="#8B00FF"
+                    android:drawableTint="#D29CFF"
                     android:fontFamily="@font/nanumsquare_bold"
                     android:text=""
                     android:textSize="@dimen/buttonText"
-                    android:textColor="@color/text_color"
+                    android:textColor="#6E6E6E"
                     android:background="@drawable/custom_button_selector"
                     />
                 <Button
@@ -118,11 +191,11 @@
                     android:paddingHorizontal="40dp"
                     android:drawableTop="@drawable/scholarship_top"
                     android:drawablePadding="20dp"
-                    android:drawableTint="#8B00FF"
+                    android:drawableTint="#D29CFF"
                     android:fontFamily="@font/nanumsquare_bold"
                     android:text=""
                     android:textSize="@dimen/buttonText"
-                    android:textColor="@color/text_color"
+                    android:textColor="#6E6E6E"
                     android:background="@drawable/custom_button_selector"
                     />
                 <Button
@@ -135,11 +208,11 @@
                     android:paddingHorizontal="40dp"
                     android:drawableTop="@drawable/scholarship_top"
                     android:drawablePadding="20dp"
-                    android:drawableTint="#8B00FF"
+                    android:drawableTint="#D29CFF"
                     android:fontFamily="@font/nanumsquare_bold"
                     android:text=""
                     android:textSize="@dimen/buttonText"
-                    android:textColor="@color/text_color"
+                    android:textColor="#6E6E6E"
                     android:background="@drawable/custom_button_selector"
                     />
                 <Button
@@ -152,14 +225,15 @@
                     android:paddingHorizontal="40dp"
                     android:drawableTop="@drawable/scholarship_top"
                     android:drawablePadding="20dp"
-                    android:drawableTint="#8B00FF"
+                    android:drawableTint="#D29CFF"
                     android:fontFamily="@font/nanumsquare_bold"
-                    android:text=""
                     android:textSize="@dimen/buttonText"
-                    android:textColor="@color/text_color"
+                    android:textColor="#6E6E6E"
                     android:background="@drawable/custom_button_selector"
                     />
             </TableRow>
+
+
         </TableLayout>
     </RelativeLayout>
 </FrameLayout>

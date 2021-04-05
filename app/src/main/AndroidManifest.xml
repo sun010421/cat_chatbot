@@ -16,7 +16,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/SkillTheme">
+        android:theme="@style/SkillTheme"
+        android:name=".App">
         <meta-data
             android:name="com.robotemi.sdk.metadata.SKILL"
             android:value="@string/app_name" />
@@ -52,6 +53,9 @@
         <activity android:name=".PopupActivityEn" android:theme="@style/Theme.MyDialog"/>
         <activity android:name=".PopupActivity2En" android:theme="@style/Theme.MyDialog"/>
         <activity android:name=".PopupActivity3En" android:theme="@style/Theme.MyDialog"/>
+
+        <activity android:name=".ChangeActivity"/>
+        <activity android:name=".ListActivity" android:theme="@style/Theme.MyDialog"/>
     </application>
 
 </manifest>

@@ -10,8 +10,8 @@
     <!-- Notice -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="230dp"
-        >
+        android:layout_height="230dp">
+
         <TextView
             android:id="@+id/popupText"
             android:textSize="25sp"
@@ -56,5 +56,4 @@
             android:layout_height="match_parent"
             android:onClick="No"/>
     </LinearLayout>
-    <!--// 닫기 버튼 -->
 </LinearLayout>

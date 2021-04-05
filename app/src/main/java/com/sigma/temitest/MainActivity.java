@@ -3,6 +3,7 @@ package com.sigma.temitest;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -103,10 +104,12 @@ public class MainActivity extends AppCompatActivity implements
 
     //    ViewPager 관련 변수 선언
     private ViewPager2 mPager;
-    private FragmentStateAdapter pagerAdapter;
+    private MyAdapter pagerAdapter;
     private FragmentStateAdapter pagerAdapter_en;
     private int num_page = 2;
     private CircleIndicator3 mIndicator;
+
+    public int[] indices;
 
     @Override
     protected void onStart() {
@@ -262,6 +265,23 @@ public class MainActivity extends AppCompatActivity implements
             public void onClick(View v) {
                 speakWithLan("행정실 입구로 이동합니다.", "Moving to entrance of office.");
                 robot.goTo("행정실 입구");
+            }
+        });
+
+        indices = new int[8];
+        for (int i = 0; i < 8; i++)
+            indices[i] = i + 1;
+
+        ImageButton changeButton = findViewById(R.id.change_btn); // 행정실 입구로 이동 버튼
+        changeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, ChangeActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putIntArray("currentItems", indices.clone());
+                intent.putExtras(bundle);
+
+                startActivityForResult(intent, 0);
             }
         });
 
@@ -459,7 +479,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onActivityResult(int requestCode, int resultCode, @androidx.annotation.Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
+        if (requestCode == 1) { // 선생님 이동 팝업
             if (resultCode == RESULT_OK) {
                 //데이터 받기
                 String teacher = data.getStringExtra("teacher");
@@ -471,6 +491,23 @@ public class MainActivity extends AppCompatActivity implements
                     robot.goTo(teacher);
                 }
             }
+        }
+
+        if (requestCode == 0) { // 선생님 이동 팝업
+            Bundle bundle = data.getExtras();
+            int[] updates = bundle.getIntArray("updates");
+
+            for (int i = 0; i < 8; i++) {
+                if (updates[i] != 0) { // 변화가 필요한 버튼만 해당.
+                    indices[i] = updates[i];
+                }
+            }
+
+            // Refresh Fragment.
+            if (language == Locale.KOREAN)
+                mPager.setAdapter(pagerAdapter);
+            else
+                mPager.setAdapter(pagerAdapter_en);
         }
     }
 
@@ -717,8 +754,7 @@ public class MainActivity extends AppCompatActivity implements
 
         atStandby = false; // 일단 뭔가 status 변화가 있으면, 인사 안하도록.
         atHome = false; // 이동 상태가 변하면 대기 장소나 홈 베이스에서 벗어나게 됨
-        //robot.setAutoReturnOn(true);
-
+        robot.setAutoReturnOn(true);
         TtsText.setText("");
 
         if (status.equals(OnGoToLocationStatusChangedListener.START)) moving = true;
@@ -730,10 +766,8 @@ public class MainActivity extends AppCompatActivity implements
             if (location.equals("행정실 입구")) {
                 atStandby = true;
             } else if (location.equals("home base")) {
-                Log.d("Test: ", "ok");
                 atHome = true;
                 robot.setAutoReturnOn(false);
-                Log.d("Test: ", String.valueOf(robot.isAutoReturnOn())); // 제대로 동작.
 
                 speakWithLan("홈베이스에 도착했습니다.", "Arrived at home base.");
             }
