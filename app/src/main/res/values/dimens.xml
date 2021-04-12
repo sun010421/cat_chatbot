@@ -7,4 +7,5 @@
     <dimen name="drawableSize">200dp</dimen>
     <dimen name="buttonText">29sp</dimen>
     <dimen name="buttonText_en">27sp</dimen>
+    <dimen name="settingbuttonText">20sp</dimen>
 </resources>

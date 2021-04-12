@@ -43,7 +43,7 @@
                     android:background="@drawable/custom_button_selector"
                     android:drawableTop="@drawable/telephone_top"
                     android:drawablePadding="20dp"
-                    android:drawableTint="#8B00FF"
+                    android:drawableTint="#DA00FF"
                     android:fontFamily="@font/nanumsquare_bold"
                     android:paddingHorizontal="40dp"
                     android:paddingTop="15dp"

@@ -6,7 +6,7 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class ButtonNumber extends AppCompatActivity {
-    public static final int num = 16;
+    public static final int num = 24;
 
     public static final int SCHOLARSHIP = 1;
     public static final int LOCKER = 2;
@@ -24,6 +24,14 @@ public class ButtonNumber extends AppCompatActivity {
     public static final int INOUT = 14;
     public static final int MENTORING = 15;
     public static final int SSAI = 16;
+    public static final int ACCESS = 17;
+    public static final int LIBRARY = 18;
+    public static final int MILITARY = 19;
+    public static final int DEAN = 20;
+    public static final int MANAGER = 21;
+    public static final int ENTRANCE = 22;
+    public static final int COMPUTER = 23;
+    public static final int COMMON = 24;
 
     public static int getButtonText(int index) {
         switch (index) {
@@ -59,6 +67,22 @@ public class ButtonNumber extends AppCompatActivity {
                 return R.string.mentoring_btn;
             case SSAI:
                 return R.string.ssai_btn;
+            case ACCESS:
+                return R.string.access_btn;
+            case LIBRARY:
+                return R.string.library_btn;
+            case MILITARY:
+                return R.string.military_btn;
+            case DEAN:
+                return R.string.dean_btn;
+            case MANAGER:
+                return R.string.manager_btn;
+            case ENTRANCE:
+                return R.string.entrance_btn;
+            case COMPUTER:
+                return R.string.computer_btn;
+            case COMMON:
+                return R.string.common_btn;
             default:
                 return 0;
         }
@@ -98,6 +122,22 @@ public class ButtonNumber extends AppCompatActivity {
                 return R.string.mentoring_btn_en;
             case SSAI:
                 return R.string.ssai_btn_en;
+            case ACCESS:
+                return R.string.access_btn_en;
+            case LIBRARY:
+                return R.string.library_btn_en;
+            case MILITARY:
+                return R.string.military_btn_en;
+            case DEAN:
+                return R.string.dean_btn_en;
+            case MANAGER:
+                return R.string.manager_btn_en;
+            case ENTRANCE:
+                return R.string.entrance_btn_en;
+            case COMPUTER:
+                return R.string.computer_btn_en;
+            case COMMON:
+                return R.string.common_btn_en;
             default:
                 return 0;
         }
@@ -137,6 +177,22 @@ public class ButtonNumber extends AppCompatActivity {
                 return R.drawable.mentoring_top;
             case SSAI:
                 return R.drawable.ssai_top;
+            case ACCESS:
+                return R.drawable.access_top;
+            case LIBRARY:
+                return R.drawable.library_top;
+            case MILITARY:
+                return R.drawable.military_top;
+            case DEAN:
+                return R.drawable.dean_top;
+            case MANAGER:
+                return R.drawable.manager_top;
+            case ENTRANCE:
+                return R.drawable.entrance_top;
+            case COMPUTER:
+                return R.drawable.computer_top;
+            case COMMON:
+                return R.drawable.common_top;
             default:
                 return 0;
         }

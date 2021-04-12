@@ -14,20 +14,28 @@ import androidx.fragment.app.Fragment;
 
 import java.util.ArrayList;
 
+import static com.sigma.temitest.ButtonNumber.ACCESS;
 import static com.sigma.temitest.ButtonNumber.APPLY;
 import static com.sigma.temitest.ButtonNumber.CENTER;
 import static com.sigma.temitest.ButtonNumber.CERTIFICATE;
 import static com.sigma.temitest.ButtonNumber.CLUB;
+import static com.sigma.temitest.ButtonNumber.COMMON;
+import static com.sigma.temitest.ButtonNumber.COMPUTER;
 import static com.sigma.temitest.ButtonNumber.COUNSELING;
 import static com.sigma.temitest.ButtonNumber.CURRICULUM;
+import static com.sigma.temitest.ButtonNumber.DEAN;
 import static com.sigma.temitest.ButtonNumber.DORMITORY;
 import static com.sigma.temitest.ButtonNumber.DOUBLEMAJOR;
+import static com.sigma.temitest.ButtonNumber.ENTRANCE;
 import static com.sigma.temitest.ButtonNumber.GRADE;
 import static com.sigma.temitest.ButtonNumber.GRADUATION;
 import static com.sigma.temitest.ButtonNumber.INOUT;
 import static com.sigma.temitest.ButtonNumber.LAB;
+import static com.sigma.temitest.ButtonNumber.LIBRARY;
 import static com.sigma.temitest.ButtonNumber.LOCKER;
+import static com.sigma.temitest.ButtonNumber.MANAGER;
 import static com.sigma.temitest.ButtonNumber.MENTORING;
+import static com.sigma.temitest.ButtonNumber.MILITARY;
 import static com.sigma.temitest.ButtonNumber.SCHOLARSHIP;
 import static com.sigma.temitest.ButtonNumber.SSAI;
 
@@ -193,6 +201,58 @@ public class FragmentSecondEn extends Fragment {
                         intent.putExtra("teacher", getString(R.string.kwonsm));
                         intent.putExtra("text", getString(R.string.ssai_en));
                         getActivity().startActivityForResult(intent, 1);
+                        break;
+                    case ACCESS:
+                        mainActivity.sendRequest("Press access button");
+                        intent = new Intent(getActivity(), PopupActivity3En.class);
+                        intent.putExtra("access", getString(R.string.access_en));
+                        startActivity(intent);
+                        break;
+                    case LIBRARY:
+                        mainActivity.sendRequest("Press library button");
+                        intent = new Intent(getActivity(), PopupActivity2En.class);
+                        intent.putExtra("text", getString(R.string.library_en));
+                        startActivity(intent);
+                        break;
+                    case MILITARY:
+                        mainActivity.sendRequest("Press military button");
+                        intent = new Intent(getActivity(), PopupActivityEn.class);
+                        intent.putExtra("teacher", getString(R.string.shimms));
+                        intent.putExtra("text", getString(R.string.military_en));
+                        getActivity().startActivityForResult(intent, 1);
+                        break;
+                    case DEAN:
+                        mainActivity.sendRequest("Press dean button");
+                        intent = new Intent(getActivity(), PopupActivityEn.class);
+                        intent.putExtra("teacher", getString(R.string.leear));
+                        intent.putExtra("text", getString(R.string.dean_en));
+                        getActivity().startActivityForResult(intent, 1);
+                        break;
+                    case MANAGER:
+                        mainActivity.sendRequest("Press manager button");
+                        intent = new Intent(getActivity(), PopupActivityEn.class);
+                        intent.putExtra("teacher", getString(R.string.shinhc));
+                        intent.putExtra("text", getString(R.string.manager_en));
+                        getActivity().startActivityForResult(intent, 1);
+                        break;
+                    case ENTRANCE:
+                        mainActivity.sendRequest("Press entrance button");
+                        intent = new Intent(getActivity(), PopupActivityEn.class);
+                        intent.putExtra("teacher", getString(R.string.jangb));
+                        intent.putExtra("text", getString(R.string.entrance_en));
+                        getActivity().startActivityForResult(intent, 1);
+                        break;
+                    case COMPUTER:
+                        mainActivity.sendRequest("Press computer button");
+                        intent = new Intent(getActivity(), PopupActivity2En.class);
+                        intent.putExtra("text", getString(R.string.computer_en));
+                        startActivity(intent);
+                        break;
+                    case COMMON:
+                        mainActivity.sendRequest("Press common button");
+                        intent = new Intent(getActivity(), PopupActivity2En.class);
+                        intent.putExtra("text", getString(R.string.common_en));
+                        startActivity(intent);
                         break;
                     default:
                         break;

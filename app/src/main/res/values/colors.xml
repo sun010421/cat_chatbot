@@ -5,19 +5,9 @@
     <color name="colorAccent">#03DAC5</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="red">#9E2525</color>
+    <color name="colorSecondary">#0c7bae</color>
     <color name="transparent">#1A000000</color>
-    <!--
-    투명도
-    100% — FF
-    90% — E6
-    80% — CC
-    70% — B3
-    60% — 99
-    50% — 80
-    40% — 66
-    30% — 4D
-    20% — 33
-    10% — 1A
-    0% — 00
-    -->
+
+    <color name="white_transparent">#E6F3F3F3</color>
 </resources>

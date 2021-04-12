@@ -1,21 +1,25 @@
 package com.sigma.temitest;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
@@ -23,7 +27,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.DecelerateInterpolator;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -48,6 +57,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -135,7 +145,14 @@ public class MainActivity extends AppCompatActivity implements
         //Robot.getInstance().removeOnUserInteractionChangedListener(this);
     }
 
+    ArrayList<ImageButton> setting_button;
+    ArrayList<TextView> setting_text;
+    ImageButton settingsButton;
+    View set;
+    boolean settingIsOpen;
+
     Dialog dialog;
+    AlertDialog alertDialog;
     TextView AsrText;
     TextView TtsText;
     TextView Notice;
@@ -247,6 +264,39 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 ThermoCheck();
+            }
+        });
+
+        settingIsOpen = false;
+
+        setting_button = new ArrayList<ImageButton>();
+        setting_text = new ArrayList<TextView>();
+        setting_button.add(findViewById(R.id.home_btn));
+        setting_text.add(findViewById(R.id.home_btn_text));
+        setting_button.add(findViewById(R.id.standby_btn));
+        setting_text.add(findViewById(R.id.standby_btn_text));
+        setting_button.add(findViewById(R.id.change_btn));
+        setting_text.add(findViewById(R.id.change_btn_text));
+
+        set = findViewById(R.id.background_dimmer);
+        set.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                closeSettings();
+            }
+        });
+
+        // Alert dialog build
+        initAlertDialog();
+
+        settingsButton = findViewById(R.id.settings_btn);
+        settingsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!settingIsOpen)
+                    alertDialog.show();
+                else
+                    closeSettings();
             }
         });
 
@@ -780,5 +830,126 @@ public class MainActivity extends AppCompatActivity implements
         } else if (status.equals(OnGoToLocationStatusChangedListener.ABORT)) {
             moving = false;
         }
+    }
+
+    void initAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.login_activity, null);
+        builder.setView(view);
+
+        final Button submit = (Button) view.findViewById(R.id.enter);
+        final Button cancel = (Button) view.findViewById(R.id.cancel);
+        final EditText password = (EditText) view.findViewById(R.id.password);
+        final TextView text = (TextView) view.findViewById(R.id.textView);
+
+        alertDialog = builder.create();
+        alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        alertDialog.setCanceledOnTouchOutside(false);
+        Animation anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.shake);
+
+        submit.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                String strPassword = password.getText().toString();
+
+                if (strPassword.equals(getString(R.string.password))) {
+                    closeKeyboard();
+
+                    // 키보드가 사라지고, alertDialog 창이 닫히는 것을 순차적으로 하기 위해 (UI의 간결함)
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        public void run() {
+                            alertDialog.dismiss();
+                            password.setText("");
+                            text.setText(R.string.enter_password);
+                            text.setTextColor(getResources().getColor(R.color.black, null));
+
+                            openSettings();
+                        }
+                    }, 300);
+                }
+
+                else {
+                    view.startAnimation(anim);
+                    password.setText("");
+                    text.setText(R.string.try_again);
+                    text.setTextColor(getResources().getColor(R.color.red, null));
+                }
+            }
+        });
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                closeKeyboard();
+
+                // 키보드가 사라지고, alertDialog 창이 닫히는 것을 순차적으로 하기 위해 (UI의 간결함)
+                Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        public void run() {
+                            alertDialog.dismiss();
+                            password.setText("");
+                            text.setText(R.string.enter_password);
+                            text.setTextColor(getResources().getColor(R.color.black, null));
+                        }
+                    }, 300);
+            }
+        });
+    }
+
+    void openSettings() {
+        for (int i = 0; i < setting_button.size(); i++) {
+            final int index = i;
+            setting_button.get(i).animate().translationY((i+1) * (float) (112.5)).setInterpolator(new DecelerateInterpolator()).setListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    setting_button.get(index).setVisibility(View.VISIBLE);
+                    settingsButton.setImageResource(R.drawable.cancel_top);
+                    settingsButton.setColorFilter(getResources().getColor(R.color.red, null), PorterDuff.Mode.SRC_ATOP);
+                    set.setVisibility(View.VISIBLE);
+                    settingIsOpen = true;
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    setting_text.get(index).setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {}
+                @Override
+                public void onAnimationRepeat(Animator animation) {}
+            }).start();
+        }
+    }
+
+    void closeSettings() {
+        for (int i = 0; i < setting_button.size(); i++) {
+            final int index = i;
+            setting_button.get(i).animate().translationY(0).setInterpolator(new DecelerateInterpolator()).setListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    setting_text.get(index).setVisibility(View.INVISIBLE);
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    setting_button.get(index).setVisibility(View.INVISIBLE);
+                    settingsButton.setImageResource(R.drawable.settings_top);
+                    settingsButton.setColorFilter(getResources().getColor(R.color.colorSecondary, null), PorterDuff.Mode.SRC_ATOP);
+                    set.setVisibility(View.INVISIBLE);
+                    settingIsOpen = false;
+                }
+                @Override
+                public void onAnimationCancel(Animator animation) {}
+                @Override
+                public void onAnimationRepeat(Animator animation) {}
+            }).start();
+        }
+    }
+
+    private void closeKeyboard() {
+        // 원래는 키보드를 열 때 사용하는데, 이미 열려있으면 닫는 것으로 보임.
+        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
     }
 }
