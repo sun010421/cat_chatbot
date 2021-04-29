@@ -13,4 +13,8 @@
         <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 
+    <style name="settingsDialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_out</item>
+        <item name="android:windowExitAnimation">@anim/slide_in</item>
+    </style>
 </resources>

@@ -198,7 +198,7 @@ public class FragmentSecondEn extends Fragment {
                     case SSAI:
                         mainActivity.sendRequest("Press ssai button");
                         intent = new Intent(getActivity(), PopupActivityEn.class);
-                        intent.putExtra("teacher", getString(R.string.kwonsm));
+                        intent.putExtra("teacher", getString(R.string.imes));
                         intent.putExtra("text", getString(R.string.ssai_en));
                         getActivity().startActivityForResult(intent, 1);
                         break;

@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +34,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -58,6 +60,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -65,6 +68,7 @@ import com.robotemi.sdk.listeners.OnConversationStatusChangedListener;
 import com.robotemi.sdk.listeners.OnDetectionDataChangedListener;
 import com.robotemi.sdk.listeners.OnDetectionStateChangedListener;
 import com.robotemi.sdk.listeners.OnGoToLocationStatusChangedListener;
+import com.robotemi.sdk.listeners.OnLocationsUpdatedListener;
 import com.robotemi.sdk.listeners.OnUserInteractionChangedListener;
 import com.robotemi.sdk.model.DetectionData;
 
@@ -145,14 +149,13 @@ public class MainActivity extends AppCompatActivity implements
         //Robot.getInstance().removeOnUserInteractionChangedListener(this);
     }
 
-    ArrayList<ImageButton> setting_button;
-    ArrayList<TextView> setting_text;
-    ImageButton settingsButton;
-    View set;
-    boolean settingIsOpen;
+    boolean settingIsLocked;
+    boolean firstSettingOpen;
 
     Dialog dialog;
+    Dialog settingsDialog;
     AlertDialog alertDialog;
+
     TextView AsrText;
     TextView TtsText;
     TextView Notice;
@@ -267,73 +270,30 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-        settingIsOpen = false;
-
-        setting_button = new ArrayList<ImageButton>();
-        setting_text = new ArrayList<TextView>();
-        setting_button.add(findViewById(R.id.home_btn));
-        setting_text.add(findViewById(R.id.home_btn_text));
-        setting_button.add(findViewById(R.id.standby_btn));
-        setting_text.add(findViewById(R.id.standby_btn_text));
-        setting_button.add(findViewById(R.id.change_btn));
-        setting_text.add(findViewById(R.id.change_btn_text));
-
-        set = findViewById(R.id.background_dimmer);
-        set.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                closeSettings();
-            }
-        });
+        settingIsLocked = true;
+        firstSettingOpen = true;
 
         // Alert dialog build
         initAlertDialog();
 
-        settingsButton = findViewById(R.id.settings_btn);
+        ImageButton settingsButton = findViewById(R.id.settings_btn);
         settingsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!settingIsOpen)
+                if (firstSettingOpen) { // onCreate 에서 init 하면 location 문제가 생김.
+                    firstSettingOpen = false;
+                    initSettingsDialog();
+                }
+
+                if (settingIsLocked)
                     alertDialog.show();
                 else
-                    closeSettings();
+                    settingsDialog.show();
             }
         });
 
-        ImageButton homeButton = findViewById(R.id.home_btn); // 홈 베이스로 이동 버튼
-        homeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                speakWithLan("홈 베이스로 이동합니다.", "Moving to home base.");
-                robot.goTo("home base");
-            }
-        });
-
-        ImageButton standbyButton = findViewById(R.id.standby_btn); // 행정실 입구로 이동 버튼
-        standbyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                speakWithLan("행정실 입구로 이동합니다.", "Moving to entrance of office.");
-                robot.goTo("행정실 입구");
-            }
-        });
-
-        indices = new int[8];
-        for (int i = 0; i < 8; i++)
-            indices[i] = i + 1;
-
-        ImageButton changeButton = findViewById(R.id.change_btn); // 행정실 입구로 이동 버튼
-        changeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, ChangeActivity.class);
-                Bundle bundle = new Bundle();
-                bundle.putIntArray("currentItems", indices.clone());
-                intent.putExtras(bundle);
-
-                startActivityForResult(intent, 0);
-            }
-        });
+        // 버튼 구성 편집 관련한 array 초기화
+        indices = new int[] {1, 2, 3, 4, 5, 6, 7, 8};
 
         //ViewPager2
         mPager = findViewById(R.id.viewpager);
@@ -478,7 +438,6 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onRangeStart(String utteranceId, int start, int end, int frame) {}
         });
-
     }
 
     private void askQuestion(String question) {
@@ -544,20 +503,20 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         if (requestCode == 0) { // 선생님 이동 팝업
-            Bundle bundle = data.getExtras();
-            int[] updates = bundle.getIntArray("updates");
+            if (data != null) {
+                Bundle bundle = data.getExtras();
+                int[] updates = bundle.getIntArray("updates");
 
-            for (int i = 0; i < 8; i++) {
-                if (updates[i] != 0) { // 변화가 필요한 버튼만 해당.
-                    indices[i] = updates[i];
-                }
+                for (int i = 0; i < 8; i++)
+                    if (updates[i] != 0) // 변화가 필요한 버튼만 해당.
+                        indices[i] = updates[i];
+
+                // Refresh Fragment.
+                if (language == Locale.KOREAN)
+                    mPager.setAdapter(pagerAdapter);
+                else
+                    mPager.setAdapter(pagerAdapter_en);
             }
-
-            // Refresh Fragment.
-            if (language == Locale.KOREAN)
-                mPager.setAdapter(pagerAdapter);
-            else
-                mPager.setAdapter(pagerAdapter_en);
         }
     }
 
@@ -832,6 +791,99 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    void initSettingsDialog() {
+        LayoutInflater inflater = getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.settings_activity, null);
+
+        settingsDialog = new Dialog(MainActivity.this);
+        settingsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        settingsDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        settingsDialog.setContentView(dialogView);
+
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        WindowManager.LayoutParams params = settingsDialog.getWindow().getAttributes();
+        params.x = - metrics.widthPixels / 2;
+
+        settingsDialog.getWindow().getAttributes().windowAnimations = R.style.settingsDialogAnimation;
+
+        ArrayList<myGroup> DataList = new ArrayList<myGroup>();
+        ExpandableListView listView = (ExpandableListView) settingsDialog.findViewById(R.id.mySettingsList);
+        myGroup temp = new myGroup("이동");
+        temp.child = robot.getLocations(); // 모든 위치
+        DataList.add(temp);
+
+        temp = new myGroup("조절");
+        temp.child.add("볼륨·조명");
+        temp.child.add("이동 속도");
+        DataList.add(temp);
+
+        temp = new myGroup("편집");
+        temp.child.add("버튼 구성");
+        DataList.add(temp);
+
+        temp = new myGroup("눌러서 잠금 해제");
+        DataList.add(temp);
+
+        ExpandAdapter adapter = new ExpandAdapter(getApplicationContext(),R.layout.group_row, R.layout.child_row, DataList, settingIsLocked);
+        listView.setAdapter(adapter);
+
+        listView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+                Log.d("Test: child clicked, ", String.valueOf(childPosition));
+
+                if (groupPosition == 0) {
+                    speakWithLan("요청 위치로 이동합니다.", "Moving to said location.");
+                    String data = ((TextView) v.findViewById(R.id.childName)).getText().toString();
+
+                    if (data.equals("홈베이스"))
+                        data = "home base";
+                    robot.goTo(data);
+                }
+
+                else if (groupPosition == 1) {
+                    if (childPosition == 0)
+                        robot.setVolume(2);
+                }
+
+                else if (groupPosition == 2) {
+                    Intent intent = new Intent(MainActivity.this, ChangeActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putIntArray("currentItems", indices.clone());
+                    intent.putExtras(bundle);
+
+                    startActivityForResult(intent, 0);
+                }
+
+                return true;
+            }
+        });
+
+        listView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            @Override
+            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+                Log.d("Test: group clicked, ", String.valueOf(groupPosition));
+
+                if (groupPosition == 3) {
+                    settingIsLocked = !settingIsLocked;
+                    adapter.changeLock();
+                }
+
+                return false;
+            }
+        });
+
+        settingsDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                listView.collapseGroup(0);
+                listView.collapseGroup(1);
+                listView.collapseGroup(2);
+            }
+        });
+    }
+
     void initAlertDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
@@ -846,6 +898,7 @@ public class MainActivity extends AppCompatActivity implements
         alertDialog = builder.create();
         alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         alertDialog.setCanceledOnTouchOutside(false);
+
         Animation anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.shake);
 
         submit.setOnClickListener(new View.OnClickListener() {
@@ -853,18 +906,14 @@ public class MainActivity extends AppCompatActivity implements
                 String strPassword = password.getText().toString();
 
                 if (strPassword.equals(getString(R.string.password))) {
-                    closeKeyboard();
+                    closeKeyboard(view);
 
                     // 키보드가 사라지고, alertDialog 창이 닫히는 것을 순차적으로 하기 위해 (UI의 간결함)
                     Handler handler = new Handler();
                     handler.postDelayed(new Runnable() {
                         public void run() {
                             alertDialog.dismiss();
-                            password.setText("");
-                            text.setText(R.string.enter_password);
-                            text.setTextColor(getResources().getColor(R.color.black, null));
-
-                            openSettings();
+                            settingsDialog.show();
                         }
                     }, 300);
                 }
@@ -880,76 +929,29 @@ public class MainActivity extends AppCompatActivity implements
 
         cancel.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                closeKeyboard();
+                closeKeyboard(view);
 
-                // 키보드가 사라지고, alertDialog 창이 닫히는 것을 순차적으로 하기 위해 (UI의 간결함)
                 Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-                        public void run() {
-                            alertDialog.dismiss();
-                            password.setText("");
-                            text.setText(R.string.enter_password);
-                            text.setTextColor(getResources().getColor(R.color.black, null));
-                        }
-                    }, 300);
+                handler.postDelayed(new Runnable() {
+                    public void run() {
+                        alertDialog.dismiss();
+                    }
+                }, 300);
+            }
+        });
+
+        alertDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                password.setText("");
+                text.setText(R.string.enter_password);
+                text.setTextColor(getResources().getColor(R.color.black, null));
             }
         });
     }
 
-    void openSettings() {
-        for (int i = 0; i < setting_button.size(); i++) {
-            final int index = i;
-            setting_button.get(i).animate().translationY((i+1) * (float) (112.5)).setInterpolator(new DecelerateInterpolator()).setListener(new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    setting_button.get(index).setVisibility(View.VISIBLE);
-                    settingsButton.setImageResource(R.drawable.cancel_top);
-                    settingsButton.setColorFilter(getResources().getColor(R.color.red, null), PorterDuff.Mode.SRC_ATOP);
-                    set.setVisibility(View.VISIBLE);
-                    settingIsOpen = true;
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    setting_text.get(index).setVisibility(View.VISIBLE);
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {}
-                @Override
-                public void onAnimationRepeat(Animator animation) {}
-            }).start();
-        }
-    }
-
-    void closeSettings() {
-        for (int i = 0; i < setting_button.size(); i++) {
-            final int index = i;
-            setting_button.get(i).animate().translationY(0).setInterpolator(new DecelerateInterpolator()).setListener(new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    setting_text.get(index).setVisibility(View.INVISIBLE);
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    setting_button.get(index).setVisibility(View.INVISIBLE);
-                    settingsButton.setImageResource(R.drawable.settings_top);
-                    settingsButton.setColorFilter(getResources().getColor(R.color.colorSecondary, null), PorterDuff.Mode.SRC_ATOP);
-                    set.setVisibility(View.INVISIBLE);
-                    settingIsOpen = false;
-                }
-                @Override
-                public void onAnimationCancel(Animator animation) {}
-                @Override
-                public void onAnimationRepeat(Animator animation) {}
-            }).start();
-        }
-    }
-
-    private void closeKeyboard() {
-        // 원래는 키보드를 열 때 사용하는데, 이미 열려있으면 닫는 것으로 보임.
+    private void closeKeyboard(View view) {
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }

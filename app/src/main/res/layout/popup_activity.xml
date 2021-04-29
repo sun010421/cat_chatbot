@@ -4,8 +4,7 @@
     android:background="@drawable/custom_popup"
     android:orientation="vertical"
     android:layout_width="1000dp"
-    android:layout_height="300dp"
-    >
+    android:layout_height="300dp">
 
     <!-- Notice -->
     <FrameLayout
