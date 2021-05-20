@@ -1,5 +1,6 @@
 package com.sigma.temitest;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,10 +11,9 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 public class ExpandAdapter extends BaseExpandableListAdapter {
-    private Context context;
     private int groupLayout = 0;
     private int childLayout = 0;
-    private ArrayList<myGroup> DataList;
+    private final ArrayList<myGroup> DataList;
     private LayoutInflater inflater = null;
     private boolean isLocked;
 
@@ -22,17 +22,15 @@ public class ExpandAdapter extends BaseExpandableListAdapter {
     private static final int CHANGE = 2;
     private static final int LOCK = 3;
 
-    private int lastExpandedGroupPosition;
-
     public ExpandAdapter(Context context, int groupLay, int childLay, ArrayList<myGroup> DataList, boolean isLocked){
         this.DataList = DataList;
         this.groupLayout = groupLay;
         this.childLayout = childLay;
-        this.context = context;
         this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         this.isLocked = isLocked;
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
         if (convertView == null)

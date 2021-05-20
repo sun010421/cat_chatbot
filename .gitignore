@@ -12,7 +12,7 @@
 /captures
 .externalNativeBuild
 .cxx
-app/src/main/res/raw/test_agent_credentials.json
+app/src/main/res/raw/credential_reception_robot.json
 app/src/main/res/values/strings.xml
 app/src/main/res/values-en-rUS/strings.xml
 app/src/main/res/values-ko-rKR/strings.xml

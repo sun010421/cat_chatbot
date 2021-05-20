@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
-public class ListActivity extends AppCompatActivity {
+public class ListActivity extends MyBaseActivity {
     ArrayList<Integer> DataList;
 
     @Override
@@ -21,7 +21,7 @@ public class ListActivity extends AppCompatActivity {
         setFinishOnTouchOutside(false);
         setContentView(R.layout.list_activity);
 
-        this.InitializeData();
+        initializeData();
 
         int currentItem = getIntent().getIntExtra("currentItem", 0);
 
@@ -38,16 +38,13 @@ public class ListActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 intent.putExtra("toChangeIndex", myAdapter.getItem(position)); // data is the value you need in parent
                 setResult(0, intent);
-
                 finish();
             }
         });
     }
 
-    public void InitializeData()
-    {
+    public void initializeData() {
         DataList = new ArrayList<Integer>();
-
         for (int i = 1; i <= ButtonNumber.num; i++)
             DataList.add(i);
     }

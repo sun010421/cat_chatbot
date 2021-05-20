@@ -3,10 +3,23 @@ package com.sigma.temitest;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.Camera;
+import androidx.camera.core.CameraControl;
+import androidx.camera.core.CameraInfo;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageProxy;
+import androidx.camera.core.Preview;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -15,15 +28,25 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.PorterDuff;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.Size;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -39,6 +62,10 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
@@ -50,6 +77,14 @@ import com.google.cloud.dialogflow.v2.SessionsSettings;
 import com.google.cloud.dialogflow.v2.TextInput;
 import com.google.cloud.dialogflow.v2.QueryResult;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.face.Face;
+import com.google.mlkit.vision.face.FaceContour;
+import com.google.mlkit.vision.face.FaceDetection;
+import com.google.mlkit.vision.face.FaceDetector;
+import com.google.mlkit.vision.face.FaceDetectorOptions;
+import com.google.mlkit.vision.face.FaceLandmark;
 import com.robotemi.sdk.Robot;
 import com.robotemi.sdk.constants.SdkConstants;
 
@@ -63,6 +98,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import com.robotemi.sdk.listeners.OnConversationStatusChangedListener;
 import com.robotemi.sdk.listeners.OnDetectionDataChangedListener;
@@ -84,6 +120,53 @@ public class MainActivity extends AppCompatActivity implements
         OnConversationStatusChangedListener,
         //OnUserInteractionChangedListener,
         OnGoToLocationStatusChangedListener {
+
+    public static final long ENDOFINTERACTION_TIMEOUT = 15000;
+    private final Handler endOfInteractionHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            return true;
+        }
+    });
+
+    private final Runnable endOfInteractionCallback = new Runnable() {
+        @Override
+        public void run() {
+            if (alertDialog != null && alertDialog.isShowing()) {
+                View view = alertDialog.getCurrentFocus();
+                closeKeyboard(view);
+
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    public void run() {
+                        alertDialog.dismiss();
+                    }
+                }, 300);
+            }
+
+            // 행정실 입구, 터치 끝난지 5초, 대화중이 아니면(이건 사실 필요 없음)
+            if (!whileTalking && atStandby) {
+                Log.d("Test: ", "Turn on the camera!");
+                runCamera();
+            }
+        }
+    };
+
+    public void resetDisconnectTimer() {
+        endOfInteractionHandler.removeCallbacks(endOfInteractionCallback);
+        endOfInteractionHandler.postDelayed(endOfInteractionCallback, ENDOFINTERACTION_TIMEOUT);
+    }
+
+    public void stopDisconnectTimer() {
+        endOfInteractionHandler.removeCallbacks(endOfInteractionCallback);
+    }
+
+    @Override
+    public void onUserInteraction() {
+        Log.d("Test: ", "onUserInteraction");
+        resetDisconnectTimer();
+        stopCamera();
+    }
 
     private boolean whileTalking; // 사용자와 대화 중인지.
     private boolean atStandby; // 대기 장소인지 여부.
@@ -116,17 +199,38 @@ public class MainActivity extends AppCompatActivity implements
     Button stop_talking;
     Button language_btn;
 
-    //    ViewPager 관련 변수 선언
+    // ViewPager 관련 변수 선언
     private ViewPager2 mPager;
     private MyAdapter pagerAdapter;
     private FragmentStateAdapter pagerAdapter_en;
     private int num_page = 2;
     private CircleIndicator3 mIndicator;
 
-    public int[] indices;
+    public static int[] indices;
+
+    private static final String[] CAMERA_PERMISSION = new String[]{Manifest.permission.CAMERA};
+    private static final int CAMERA_REQUEST_CODE = 10;
+
+    private PreviewView previewView;
+    private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    private ProcessCameraProvider cameraProvider;
+    private CameraSelector cameraSelector;
+
+    private FaceDetector detector;
+    private ImageAnalysis imageAnalysis;
+    private ImageAnalysis.Analyzer analyzer;
+    private int frameRateBySec = 0;
+
+    Canvas canvas;
+    Bitmap bitmap;
+
+    int width;
+    int height;
 
     @Override
     protected void onStart() {
+        Log.d("Test: ", "onStart");
+
         super.onStart();
         Robot.getInstance().addAsrListener(this);
         Robot.getInstance().addWakeupWordListener(this);
@@ -138,7 +242,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    protected void onStop() {
+    protected void onStop() { // 테미가 대기모드로 전환시, 혹은 다른 activity가 호출되면 이 함수가 불림.
+        Log.d("Test: ", "onStop");
         super.onStop();
         Robot.getInstance().removeAsrListener(this);
         Robot.getInstance().removeWakeupWordListener(this);
@@ -147,14 +252,33 @@ public class MainActivity extends AppCompatActivity implements
         Robot.getInstance().removeOnConversationStatusChangedListener(this);
         Robot.getInstance().removeOnGoToLocationStatusChangedListener(this);
         //Robot.getInstance().removeOnUserInteractionChangedListener(this);
+
+        stopDisconnectTimer();
+        stopCamera();
     }
 
-    boolean settingIsLocked;
-    boolean firstSettingOpen;
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("Test: ", "onResume");
+        resetDisconnectTimer();
+
+        // Refresh Fragment for indices, reset to page 1
+        if (language == Locale.KOREAN)
+            mPager.setAdapter(pagerAdapter);
+        else mPager.setAdapter(pagerAdapter_en);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("Test: ", "onPause");
+        stopDisconnectTimer();
+    }
 
     Dialog dialog;
-    Dialog settingsDialog;
     AlertDialog alertDialog;
+    boolean settingIsLocked;
 
     TextView AsrText;
     TextView TtsText;
@@ -195,6 +319,7 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("Test: ", "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
@@ -204,13 +329,20 @@ public class MainActivity extends AppCompatActivity implements
         initV2Chatbot();
 
         LayoutInflater inflater = getLayoutInflater();
-        final View dialogView = inflater.inflate(R.layout.dialog, null);
+        @SuppressLint("InflateParams") final View dialogView = inflater.inflate(R.layout.dialog, null);
 
         // 외부 화면 터치 시 자동으로 dismiss 됨 (대화 종료 1)
         dialog = new Dialog(MainActivity.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.setContentView(dialogView);
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialog) {
+                stopCamera();
+            }
+        });
+
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) { // dialog 창이 없어지고, end of conversation 관련한 모든 조취.
@@ -223,6 +355,9 @@ public class MainActivity extends AppCompatActivity implements
                 mic.setVisibility(View.INVISIBLE);
 
                 whileTalking = false;
+                Log.d("Test: ", String.valueOf(false));
+                resetDisconnectTimer();
+                stopCamera();
             }
         });
 
@@ -233,6 +368,9 @@ public class MainActivity extends AppCompatActivity implements
         teacherAt319_Name = resources.getStringArray(R.array.teachers_name);
 
         whileTalking = false;
+        Log.d("Test: ", String.valueOf(false));
+        resetDisconnectTimer();
+
         moving = false;
         atStandby = true; // 처음 앱이 실행되면, 위치와 관계 없이 사용자를 감지
 
@@ -258,7 +396,8 @@ public class MainActivity extends AppCompatActivity implements
         stop_talking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialog.dismiss();
+                //dialog.dismiss();
+                runCamera();
             }
         });
 
@@ -266,12 +405,12 @@ public class MainActivity extends AppCompatActivity implements
         FLIR.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ThermoCheck();
+                //ThermoCheck();
+                stopCamera();
             }
         });
 
-        settingIsLocked = true;
-        firstSettingOpen = true;
+        settingIsLocked = false;
 
         // Alert dialog build
         initAlertDialog();
@@ -280,15 +419,9 @@ public class MainActivity extends AppCompatActivity implements
         settingsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (firstSettingOpen) { // onCreate 에서 init 하면 location 문제가 생김.
-                    firstSettingOpen = false;
-                    initSettingsDialog();
-                }
-
                 if (settingIsLocked)
                     alertDialog.show();
-                else
-                    settingsDialog.show();
+                else openSettings();
             }
         });
 
@@ -366,6 +499,8 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void run() {
                         whileTalking = true;
+                        Log.d("Test: ", String.valueOf(true));
+                        stopDisconnectTimer();
                         mic.setVisibility(View.INVISIBLE);
                     }
                 });
@@ -382,6 +517,10 @@ public class MainActivity extends AppCompatActivity implements
                             AsrText.setText("");
                             TtsText.setText("");
                             mic.setVisibility(View.INVISIBLE);
+
+                            whileTalking = false;
+                            Log.d("Test: ", String.valueOf(false));
+                            resetDisconnectTimer();
                         }
 
                         dialog.dismiss();
@@ -414,6 +553,8 @@ public class MainActivity extends AppCompatActivity implements
                     @Override
                     public void run() {
                         whileTalking = true;
+                        Log.d("Test: ", String.valueOf(true));
+                        stopDisconnectTimer();
                         mic.setVisibility(View.INVISIBLE);
                     }
                 });
@@ -438,6 +579,215 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onRangeStart(String utteranceId, int start, int end, int frame) {}
         });
+
+        if (!hasCameraPermission())
+            requestPermission();
+        else {
+            FaceDetectorOptions options =
+                    new FaceDetectorOptions.Builder()
+                            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+                            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+                            .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
+                            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
+                            .build();
+            detector = FaceDetection.getClient(options);
+
+            previewView = findViewById(R.id.previewView);
+            cameraSelector = new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_FRONT).build();
+            cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+
+            try { cameraProvider = cameraProviderFuture.get(); }
+            catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            initImageAnalysis();
+        }
+
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        width = size.x;
+        height = size.y;
+
+        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        canvas = new Canvas(bitmap);
+        canvas.drawColor(Color.TRANSPARENT);
+        ((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
+    }
+
+    private boolean hasCameraPermission() {
+        return ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+        ActivityCompat.requestPermissions(
+                this,
+                CAMERA_PERMISSION,
+                CAMERA_REQUEST_CODE
+        );
+    }
+
+    private void runCamera() {
+        Log.d("Test: ", "runCamera");
+        cameraProvider.unbindAll();
+        cameraProviderFuture.addListener(new Runnable() {
+            @Override
+            public void run() {
+                runCameraSub();
+            }
+        }, ContextCompat.getMainExecutor(this));
+    }
+
+    private void runCameraSub() {
+        Preview preview = new Preview.Builder().build();
+        preview.setSurfaceProvider(previewView.createSurfaceProvider());
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), analyzer);
+
+        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
+        CameraControl control = camera.getCameraControl();
+        control.setZoomRatio(2.0f);
+    }
+
+    private void stopCamera() {
+        Log.d("Test: ", "stopCamera");
+        cameraProvider.unbindAll();
+    }
+
+    private void initImageAnalysis() {
+        Log.d("Test: ", "initImageAnalysis");
+        imageAnalysis = new ImageAnalysis.Builder().setTargetResolution(new Size(1920, 1200))
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
+
+        analyzer = new ImageAnalysis.Analyzer() {
+            @Override
+            public void analyze(@NonNull ImageProxy image) {
+                frameRateBySec++;
+                if (frameRateBySec % 5 == 0) {
+                    frameRateBySec = 0;
+
+                    // YUV_420_888 - CameraX image style.
+                    @SuppressLint("UnsafeExperimentalUsageError") Image mediaImage = image.getImage();
+                    InputImage src = InputImage.fromMediaImage(mediaImage, image.getImageInfo().getRotationDegrees());
+
+                    Task<List<Face>> task = detector.process(src);
+                    task.addOnSuccessListener(
+                            new OnSuccessListener<List<Face>>() {
+                                @Override
+                                public void onSuccess(List<Face> faces) {
+                                    Log.d("Test: ", "number of faces = " + String.valueOf(faces.size()));
+
+                                    if (faces.size() == 0) {
+                                        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+                                        ((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
+                                        return;
+                                    }
+
+                                    Face face = faces.get(0);
+                                    Rect bounds = face.getBoundingBox();
+                                    FaceLandmark leftEye = face.getLandmark(FaceLandmark.LEFT_EYE);
+                                    FaceLandmark rightEye = face.getLandmark(FaceLandmark.RIGHT_EYE);
+
+                                    /*
+                                    List<PointF> contour = null;
+                                    if (face.getContour(FaceContour.FACE) != null)
+                                        contour = face.getContour(FaceContour.FACE).getPoints();
+                                    */
+
+                                    Log.d("Test: ", String.valueOf(bounds.top));
+                                    Log.d("Test: ", String.valueOf(bounds.bottom));
+                                    Log.d("Test: ", String.valueOf(bounds.left));
+                                    Log.d("Test: ", String.valueOf(bounds.right));
+                                    /////////////////////////////
+
+                                    Paint paint = new Paint();
+                                    paint.setColor(Color.RED);
+                                    paint.setStyle(Paint.Style.STROKE);
+                                    paint.setStrokeWidth(5f);
+
+                                    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+                                    canvas.drawRect(new Rect(width - changeWidth(bounds.right), changeHeight(bounds.top), width - changeWidth(bounds.left), changeHeight(bounds.bottom)), paint);
+                                    /////////////////////////////
+
+                                    paint.setColor(Color.GREEN);
+
+                                    if (leftEye != null) {
+                                        Log.d("Test: ", String.valueOf(leftEye.getPosition().x));
+                                        Log.d("Test: ", String.valueOf(leftEye.getPosition().y));
+                                    }
+
+                                    if (rightEye != null) {
+                                        Log.d("Test: ", String.valueOf(rightEye.getPosition().x));
+                                        Log.d("Test: ", String.valueOf(rightEye.getPosition().y));
+                                    }
+
+
+                                    if (leftEye != null) canvas.drawPoint(width - changeWidth(leftEye.getPosition().x), changeHeight(leftEye.getPosition().y), paint);
+                                    if (rightEye != null) canvas.drawPoint(width - changeWidth(rightEye.getPosition().x), changeHeight(leftEye.getPosition().y), paint);
+                                    /////////////////////////////
+                                    /*
+                                    paint.setColor(Color.MAGENTA);
+
+                                    if (contour != null) {
+                                        for (int i = 0; i < contour.size(); i++) {
+                                            canvas.drawLine(
+                                                    width - changeWidth(contour.get(i % contour.size()).x),
+                                                    changeHeight(contour.get(i % contour.size()).y),
+                                                    width - changeWidth(contour.get((i + 1) % contour.size()).x),
+                                                    changeHeight(contour.get((i + 1) % contour.size()).y), paint);
+                                        }
+                                    }*/
+                                    /////////////////////////////
+
+                                    ((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
+
+                                    // 충분히 가까이 있고, 정면을 의식하고 있는 사용자의 경우에만 반기도록
+                                    if ((bounds.top-bounds.bottom) * (bounds.left - bounds.right) > 20000 &&
+                                        leftEye != null && rightEye != null &&
+                                        (rightEye.getPosition().x - leftEye.getPosition().x) > 40) {
+
+                                        stopCamera();
+                                        if (!dialog.isShowing())
+                                            dialog.show();
+
+                                        askQuestionWithLan(
+                                                "전기정보공학부 행정실에 무슨 일로 오셨나요?",
+                                                "How may I help you?");
+                                    }
+                                }
+                            });
+
+                    task.addOnFailureListener(
+                            new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.d("Test: ", e.toString());
+                                }
+                            });
+
+                    task.addOnCompleteListener(
+                            new OnCompleteListener<List<Face>>() {
+                                @Override
+                                public void onComplete(@NonNull Task<List<Face>> task) {
+                                    image.close();
+                                }
+                            });
+                }
+
+                else image.close();
+            }
+        };
+    }
+
+    int changeWidth(float input) {
+        return (int)(input * 8 / 3);
+    }
+
+    int changeHeight (float input) {
+        return (int)(input * 2.5);
     }
 
     private void askQuestion(String question) {
@@ -456,7 +806,7 @@ public class MainActivity extends AppCompatActivity implements
                 "question");
     }
 
-    private void askQuestionWithLan(String korean, String english){
+    private void askQuestionWithLan(String korean, String english) {
         if (language == Locale.KOREAN)
             askQuestion(korean);
         else
@@ -478,7 +828,7 @@ public class MainActivity extends AppCompatActivity implements
                 "speak");
     }
 
-    private void speakWithLan(String korean, String english){
+    private void speakWithLan(String korean, String english) {
         if (language == Locale.KOREAN)
             speak(korean);
         else
@@ -487,10 +837,13 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @androidx.annotation.Nullable Intent data) {
+        Log.d("Test: ", "onActivityResult");
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) { // 선생님 이동 팝업
-            if (resultCode == RESULT_OK) {
-                //데이터 받기
+        if (data == null) // timeout 된 경우
+            return;
+
+        if (requestCode == 1) { // 선생님 이동
+            if (resultCode == RESULT_OK) { // Yes
                 String teacher = data.getStringExtra("teacher");
                 String result = data.getStringExtra("result");
                 if (result.equals("Yes")) {
@@ -501,28 +854,30 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         }
-
+/*
         if (requestCode == 0) { // 선생님 이동 팝업
-            if (data != null) {
-                Bundle bundle = data.getExtras();
-                int[] updates = bundle.getIntArray("updates");
+            Bundle bundle = data.getExtras();
+            int[] updates = bundle.getIntArray("updates");
 
-                for (int i = 0; i < 8; i++)
-                    if (updates[i] != 0) // 변화가 필요한 버튼만 해당.
-                        indices[i] = updates[i];
+            for (int i = 0; i < 8; i++)
+                if (updates[i] != 0) // 변화가 필요한 버튼만 해당.
+                    indices[i] = updates[i];
 
-                // Refresh Fragment.
-                if (language == Locale.KOREAN)
-                    mPager.setAdapter(pagerAdapter);
-                else
-                    mPager.setAdapter(pagerAdapter_en);
-            }
+            // Refresh Fragment.
+            if (language == Locale.KOREAN)
+                mPager.setAdapter(pagerAdapter);
+            else mPager.setAdapter(pagerAdapter_en);
+        }*/
+
+        if (requestCode == 100) {
+            Bundle bundle = data.getExtras(); // settingIsLocked null 불가능
+            settingIsLocked = bundle.getBoolean("settingIsLocked");
         }
     }
 
     private void initV2Chatbot() {
         try {
-            InputStream stream = getResources().openRawResource(R.raw.test_agent_credentials);
+            InputStream stream = getResources().openRawResource(R.raw.credential_reception_robot);
             GoogleCredentials credentials = GoogleCredentials.fromStream(stream);
             String projectId = ((ServiceAccountCredentials) credentials).getProjectId();
 
@@ -536,9 +891,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void sendRequest(String input) {
-        String lan;
-        if (language == Locale.KOREAN) lan = "ko";
-        else lan = "en";
+        String lan = "ko";
+        if (language == Locale.ENGLISH) lan = "en";
 
         QueryInput queryInput = QueryInput.newBuilder()
                 .setText(TextInput.newBuilder()
@@ -713,6 +1067,8 @@ public class MainActivity extends AppCompatActivity implements
             dialog.show();
 
         whileTalking = true;
+        Log.d("Test: ", String.valueOf(true));
+        stopDisconnectTimer();
         mic.setVisibility(View.VISIBLE);
     }
 
@@ -743,12 +1099,16 @@ public class MainActivity extends AppCompatActivity implements
 
         if (status == 1) {  // Listening user's voice
             whileTalking = true;
+            Log.d("Test: ", String.valueOf(true));
+            stopDisconnectTimer();
             mic.setVisibility(View.VISIBLE);
             AsrText.setText(text);
         }
 
         if (status == 2) {  // NLP
             whileTalking = true;
+            Log.d("Test: ", String.valueOf(true));
+            stopDisconnectTimer();
             AsrText.setText(text);
         }
 
@@ -774,10 +1134,10 @@ public class MainActivity extends AppCompatActivity implements
             // Standby에 도착한 경우, 다시 인사 하도록 변수 설정.
             if (location.equals("행정실 입구")) {
                 atStandby = true;
+                resetDisconnectTimer();
             } else if (location.equals("home base")) {
                 atHome = true;
                 robot.setAutoReturnOn(false);
-
                 speakWithLan("홈베이스에 도착했습니다.", "Arrived at home base.");
             }
 
@@ -789,99 +1149,6 @@ public class MainActivity extends AppCompatActivity implements
         } else if (status.equals(OnGoToLocationStatusChangedListener.ABORT)) {
             moving = false;
         }
-    }
-
-    void initSettingsDialog() {
-        LayoutInflater inflater = getLayoutInflater();
-        final View dialogView = inflater.inflate(R.layout.settings_activity, null);
-
-        settingsDialog = new Dialog(MainActivity.this);
-        settingsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        settingsDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        settingsDialog.setContentView(dialogView);
-
-        DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        WindowManager.LayoutParams params = settingsDialog.getWindow().getAttributes();
-        params.x = - metrics.widthPixels / 2;
-
-        settingsDialog.getWindow().getAttributes().windowAnimations = R.style.settingsDialogAnimation;
-
-        ArrayList<myGroup> DataList = new ArrayList<myGroup>();
-        ExpandableListView listView = (ExpandableListView) settingsDialog.findViewById(R.id.mySettingsList);
-        myGroup temp = new myGroup("이동");
-        temp.child = robot.getLocations(); // 모든 위치
-        DataList.add(temp);
-
-        temp = new myGroup("조절");
-        temp.child.add("볼륨·조명");
-        temp.child.add("이동 속도");
-        DataList.add(temp);
-
-        temp = new myGroup("편집");
-        temp.child.add("버튼 구성");
-        DataList.add(temp);
-
-        temp = new myGroup("눌러서 잠금 해제");
-        DataList.add(temp);
-
-        ExpandAdapter adapter = new ExpandAdapter(getApplicationContext(),R.layout.group_row, R.layout.child_row, DataList, settingIsLocked);
-        listView.setAdapter(adapter);
-
-        listView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
-            @Override
-            public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
-                Log.d("Test: child clicked, ", String.valueOf(childPosition));
-
-                if (groupPosition == 0) {
-                    speakWithLan("요청 위치로 이동합니다.", "Moving to said location.");
-                    String data = ((TextView) v.findViewById(R.id.childName)).getText().toString();
-
-                    if (data.equals("홈베이스"))
-                        data = "home base";
-                    robot.goTo(data);
-                }
-
-                else if (groupPosition == 1) {
-                    if (childPosition == 0)
-                        robot.setVolume(2);
-                }
-
-                else if (groupPosition == 2) {
-                    Intent intent = new Intent(MainActivity.this, ChangeActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putIntArray("currentItems", indices.clone());
-                    intent.putExtras(bundle);
-
-                    startActivityForResult(intent, 0);
-                }
-
-                return true;
-            }
-        });
-
-        listView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-            @Override
-            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-                Log.d("Test: group clicked, ", String.valueOf(groupPosition));
-
-                if (groupPosition == 3) {
-                    settingIsLocked = !settingIsLocked;
-                    adapter.changeLock();
-                }
-
-                return false;
-            }
-        });
-
-        settingsDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialogInterface) {
-                listView.collapseGroup(0);
-                listView.collapseGroup(1);
-                listView.collapseGroup(2);
-            }
-        });
     }
 
     void initAlertDialog() {
@@ -913,7 +1180,7 @@ public class MainActivity extends AppCompatActivity implements
                     handler.postDelayed(new Runnable() {
                         public void run() {
                             alertDialog.dismiss();
-                            settingsDialog.show();
+                            openSettings();
                         }
                     }, 300);
                 }
@@ -933,9 +1200,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
-                    public void run() {
-                        alertDialog.dismiss();
-                    }
+                    public void run() { alertDialog.dismiss();}
                 }, 300);
             }
         });
@@ -953,5 +1218,12 @@ public class MainActivity extends AppCompatActivity implements
     private void closeKeyboard(View view) {
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+    private void openSettings() {
+        Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+        intent.putExtra("settingIsLocked", settingIsLocked);
+        startActivityForResult(intent, 100);
+        overridePendingTransition(R.anim.slide_out, 0);
     }
 }

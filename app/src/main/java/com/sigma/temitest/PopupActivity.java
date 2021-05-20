@@ -11,11 +11,10 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class PopupActivity extends AppCompatActivity {
+public class PopupActivity extends MyBaseActivity {
 
     private static final String TAG = "PopupActivity";
     TextView popupText;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

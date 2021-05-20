@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class PopupActivity3 extends AppCompatActivity {
+public class PopupActivity3 extends MyBaseActivity {
 
     private static final String TAG = "PopupActivity";
     ImageView popupImage3;

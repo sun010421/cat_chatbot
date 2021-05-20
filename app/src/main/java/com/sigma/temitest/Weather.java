@@ -11,7 +11,7 @@ import android.widget.Button;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-public class Weather extends AppCompatActivity {
+public class Weather extends MyBaseActivity {
     private WebView webView;
 
     @Override
@@ -51,5 +51,4 @@ public class Weather extends AppCompatActivity {
             return true;
         }
     }
-
 }

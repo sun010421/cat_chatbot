@@ -14,7 +14,7 @@ import android.widget.Button;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-public class Web extends AppCompatActivity {
+public class Web extends MyBaseActivity {
     private WebView webView;
     private String url;
     private Boolean language;
@@ -65,5 +65,4 @@ public class Web extends AppCompatActivity {
             return true;
         }
     }
-
 }

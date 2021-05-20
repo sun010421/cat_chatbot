@@ -1,5 +1,6 @@
 package com.sigma.temitest;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -11,7 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
-public class ChangeActivity extends AppCompatActivity {
+public class ChangeActivity extends MyBaseActivity {
     ArrayList<Button> buttons;
     Button checkedButton;
 
@@ -36,8 +37,7 @@ public class ChangeActivity extends AppCompatActivity {
         buttons.add(findViewById(R.id.button7));
         buttons.add(findViewById(R.id.button8));
 
-        Bundle bundle = getIntent().getExtras();
-        currentIndices = bundle.getIntArray("currentItems"); // list 초기화 (0인 것은 없음).
+        currentIndices = MainActivity.indices.clone();
         savedIndices = currentIndices.clone();
 
         for (int i = 0; i < buttons.size(); i++)
@@ -56,12 +56,6 @@ public class ChangeActivity extends AppCompatActivity {
         close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent();
-                Bundle bundle = new Bundle();
-                bundle.putIntArray("updates", savedIndices);
-                intent.putExtras(bundle);
-
-                setResult(0, intent);
                 finish();
             }
         });
@@ -81,6 +75,7 @@ public class ChangeActivity extends AppCompatActivity {
         setButtonView(button, index);
     }
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     public void setButtonView(Button button, int index) {
         // Change DrawableTop
         int drawableTop = ButtonNumber.getButtonDrawable(index);
@@ -108,11 +103,19 @@ public class ChangeActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (data == null) // timeout 된 경우
+            return;
 
         Bundle b = data.getExtras();
         int index = b.getInt("toChangeIndex");
 
         setButtonViewDriver(checkedButton, index);
+    }
+
+    @Override
+    public void finish() {
+        MainActivity.indices = savedIndices.clone();
+        super.finish();
     }
 }
 

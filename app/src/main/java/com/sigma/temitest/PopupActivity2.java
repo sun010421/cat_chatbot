@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class PopupActivity2 extends AppCompatActivity {
+public class PopupActivity2 extends MyBaseActivity {
 
     private static final String TAG = "PopupActivity";
     TextView popupText2;

@@ -14,7 +14,7 @@ import androidx.fragment.app.Fragment;
 
 public class FragmentFirst extends Fragment {
 
-    private MainActivity mainActivity = (MainActivity)getActivity();
+    private MainActivity mainActivity = (MainActivity) getActivity();
 
     @Override
     public void onAttach(@NonNull Context context) {
