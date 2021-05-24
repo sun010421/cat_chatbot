@@ -1,13 +1,17 @@
 package com.sigma.temitest;
 
+import android.graphics.Color;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Window;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MyBaseActivity extends AppCompatActivity {
-    public final long DISCONNECT_TIMEOUT = 15000;
+    public final long DISCONNECT_TIMEOUT = 30000;
 
     private final Handler endOfInteractionHandler = new Handler(new Handler.Callback() {
         @Override

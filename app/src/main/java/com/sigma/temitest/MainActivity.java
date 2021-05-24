@@ -38,6 +38,8 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.media.Image;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -121,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements
         //OnUserInteractionChangedListener,
         OnGoToLocationStatusChangedListener {
 
-    public static final long ENDOFINTERACTION_TIMEOUT = 15000;
+    public static final long ENDOFINTERACTION_TIMEOUT = 30000;
     private final Handler endOfInteractionHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -221,11 +223,11 @@ public class MainActivity extends AppCompatActivity implements
     private ImageAnalysis.Analyzer analyzer;
     private int frameRateBySec = 0;
 
-    Canvas canvas;
-    Bitmap bitmap;
+    //Canvas canvas;
+    //Bitmap bitmap;
 
-    int width;
-    int height;
+    //int width;
+    //int height;
 
     @Override
     protected void onStart() {
@@ -339,6 +341,7 @@ public class MainActivity extends AppCompatActivity implements
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialog) {
+                stopDisconnectTimer();
                 stopCamera();
             }
         });
@@ -357,7 +360,6 @@ public class MainActivity extends AppCompatActivity implements
                 whileTalking = false;
                 Log.d("Test: ", String.valueOf(false));
                 resetDisconnectTimer();
-                stopCamera();
             }
         });
 
@@ -397,7 +399,17 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 //dialog.dismiss();
-                runCamera();
+                ConnectivityManager cm =
+                        (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+                NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                boolean isConnected = activeNetwork != null &&
+                        activeNetwork.isConnectedOrConnecting();
+
+                //Log.d("Test: isConnected", String.valueOf(isConnected));
+
+                //if (!isConnected)
+                //    speak("안녕!");
             }
         });
 
@@ -405,8 +417,7 @@ public class MainActivity extends AppCompatActivity implements
         FLIR.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //ThermoCheck();
-                stopCamera();
+                ThermoCheck();
             }
         });
 
@@ -419,8 +430,10 @@ public class MainActivity extends AppCompatActivity implements
         settingsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (settingIsLocked)
+                if (settingIsLocked) {
+                    stopDisconnectTimer();
                     alertDialog.show();
+                }
                 else openSettings();
             }
         });
@@ -520,7 +533,7 @@ public class MainActivity extends AppCompatActivity implements
 
                             whileTalking = false;
                             Log.d("Test: ", String.valueOf(false));
-                            resetDisconnectTimer();
+                            //resetDisconnectTimer();
                         }
 
                         dialog.dismiss();
@@ -604,16 +617,16 @@ public class MainActivity extends AppCompatActivity implements
             initImageAnalysis();
         }
 
-        Display display = getWindowManager().getDefaultDisplay();
+        /*Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
         width = size.x;
-        height = size.y;
+        height = size.y;*/
 
-        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        canvas = new Canvas(bitmap);
-        canvas.drawColor(Color.TRANSPARENT);
-        ((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
+        //bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        //canvas = new Canvas(bitmap);
+        //canvas.drawColor(Color.TRANSPARENT);
+        //((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
     }
 
     private boolean hasCameraPermission() {
@@ -681,38 +694,40 @@ public class MainActivity extends AppCompatActivity implements
                                     Log.d("Test: ", "number of faces = " + String.valueOf(faces.size()));
 
                                     if (faces.size() == 0) {
-                                        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                                        ((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
+                                        // canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+                                        // ((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
                                         return;
                                     }
 
-                                    Face face = faces.get(0);
-                                    Rect bounds = face.getBoundingBox();
-                                    FaceLandmark leftEye = face.getLandmark(FaceLandmark.LEFT_EYE);
-                                    FaceLandmark rightEye = face.getLandmark(FaceLandmark.RIGHT_EYE);
+                                    // 화면에 잡힌 모든 얼굴에 대해서.
+                                    for (int i = 0; i < faces.size(); i++) {
 
-                                    /*
-                                    List<PointF> contour = null;
+                                        Face face = faces.get(i);
+                                        Rect bounds = face.getBoundingBox();
+                                        FaceLandmark leftEye = face.getLandmark(FaceLandmark.LEFT_EYE);
+                                        FaceLandmark rightEye = face.getLandmark(FaceLandmark.RIGHT_EYE);
+
+                                    /*List<PointF> contour = null;
                                     if (face.getContour(FaceContour.FACE) != null)
                                         contour = face.getContour(FaceContour.FACE).getPoints();
                                     */
 
-                                    Log.d("Test: ", String.valueOf(bounds.top));
-                                    Log.d("Test: ", String.valueOf(bounds.bottom));
-                                    Log.d("Test: ", String.valueOf(bounds.left));
-                                    Log.d("Test: ", String.valueOf(bounds.right));
-                                    /////////////////////////////
-
-                                    Paint paint = new Paint();
+                                        Log.d("Test: ", String.valueOf(bounds.top));
+                                        Log.d("Test: ", String.valueOf(bounds.bottom));
+                                        Log.d("Test: ", String.valueOf(bounds.left));
+                                        Log.d("Test: ", String.valueOf(bounds.right));
+                                        /////////////////////////////
+                                    /*Paint paint = new Paint();
                                     paint.setColor(Color.RED);
                                     paint.setStyle(Paint.Style.STROKE);
                                     paint.setStrokeWidth(5f);
 
                                     canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                                     canvas.drawRect(new Rect(width - changeWidth(bounds.right), changeHeight(bounds.top), width - changeWidth(bounds.left), changeHeight(bounds.bottom)), paint);
-                                    /////////////////////////////
+                                    */
+                                        /////////////////////////////
 
-                                    paint.setColor(Color.GREEN);
+                                    /*paint.setColor(Color.GREEN);
 
                                     if (leftEye != null) {
                                         Log.d("Test: ", String.valueOf(leftEye.getPosition().x));
@@ -723,11 +738,11 @@ public class MainActivity extends AppCompatActivity implements
                                         Log.d("Test: ", String.valueOf(rightEye.getPosition().x));
                                         Log.d("Test: ", String.valueOf(rightEye.getPosition().y));
                                     }
+                                    */
 
-
-                                    if (leftEye != null) canvas.drawPoint(width - changeWidth(leftEye.getPosition().x), changeHeight(leftEye.getPosition().y), paint);
-                                    if (rightEye != null) canvas.drawPoint(width - changeWidth(rightEye.getPosition().x), changeHeight(leftEye.getPosition().y), paint);
-                                    /////////////////////////////
+                                        //if (leftEye != null) canvas.drawPoint(width - changeWidth(leftEye.getPosition().x), changeHeight(leftEye.getPosition().y), paint);
+                                        //if (rightEye != null) canvas.drawPoint(width - changeWidth(rightEye.getPosition().x), changeHeight(leftEye.getPosition().y), paint);
+                                        /////////////////////////////
                                     /*
                                     paint.setColor(Color.MAGENTA);
 
@@ -740,22 +755,23 @@ public class MainActivity extends AppCompatActivity implements
                                                     changeHeight(contour.get((i + 1) % contour.size()).y), paint);
                                         }
                                     }*/
-                                    /////////////////////////////
+                                        /////////////////////////////
 
-                                    ((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
+                                        //((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
 
-                                    // 충분히 가까이 있고, 정면을 의식하고 있는 사용자의 경우에만 반기도록
-                                    if ((bounds.top-bounds.bottom) * (bounds.left - bounds.right) > 20000 &&
-                                        leftEye != null && rightEye != null &&
-                                        (rightEye.getPosition().x - leftEye.getPosition().x) > 40) {
+                                        // 충분히 가까이 있고, 정면을 의식하고 있는 사용자의 경우에만 반기도록
+                                        if ((bounds.top - bounds.bottom) * (bounds.left - bounds.right) > 20000 &&
+                                                leftEye != null && rightEye != null &&
+                                                (rightEye.getPosition().x - leftEye.getPosition().x) > 40) {
 
-                                        stopCamera();
-                                        if (!dialog.isShowing())
-                                            dialog.show();
+                                            stopCamera();
+                                            if (!dialog.isShowing())
+                                                dialog.show();
 
-                                        askQuestionWithLan(
-                                                "전기정보공학부 행정실에 무슨 일로 오셨나요?",
-                                                "How may I help you?");
+                                            askQuestionWithLan(
+                                                    "전기정보공학부 행정실에 무슨 일로 오셨나요?",
+                                                    "How may I help you?");
+                                        }
                                     }
                                 }
                             });
@@ -782,13 +798,14 @@ public class MainActivity extends AppCompatActivity implements
         };
     }
 
+    /*
     int changeWidth(float input) {
         return (int)(input * 8 / 3);
     }
 
     int changeHeight (float input) {
         return (int)(input * 2.5);
-    }
+    }*/
 
     private void askQuestion(String question) {
         runOnUiThread(new Runnable() {
@@ -1200,7 +1217,10 @@ public class MainActivity extends AppCompatActivity implements
 
                 Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
-                    public void run() { alertDialog.dismiss();}
+                    public void run() {
+                        alertDialog.dismiss();
+                        resetDisconnectTimer();
+                    }
                 }, 300);
             }
         });
