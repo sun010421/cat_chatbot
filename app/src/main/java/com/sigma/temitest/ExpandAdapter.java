@@ -20,7 +20,8 @@ public class ExpandAdapter extends BaseExpandableListAdapter {
     private static final int MOVE = 0;
     private static final int LEVELS = 1;
     private static final int CHANGE = 2;
-    private static final int LOCK = 3;
+    private static final int SETTINGS = 3;
+    private static final int LOCK = 4;
 
     public ExpandAdapter(Context context, int groupLay, int childLay, ArrayList<myGroup> DataList, boolean isLocked){
         this.DataList = DataList;
@@ -57,10 +58,14 @@ public class ExpandAdapter extends BaseExpandableListAdapter {
             case CHANGE:
                 drawable = R.drawable.change_top;
                 break;
+            case SETTINGS:
+                drawable = R.drawable.settings_top;
+                break;
             case LOCK:
                 drawable = R.drawable.locked_top;
                 break;
         }
+
         groupImage.setImageDrawable(App.getRes().getDrawable(drawable, null));
 
         TextView groupName = (TextView) convertView.findViewById(R.id.groupName);

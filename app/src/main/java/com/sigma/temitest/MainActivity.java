@@ -26,6 +26,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -40,9 +41,12 @@ import android.graphics.drawable.ColorDrawable;
 import android.media.Image;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.DisplayMetrics;
@@ -99,6 +103,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.StringTokenizer;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -114,7 +119,7 @@ import me.relex.circleindicator.CircleIndicator3;
 
 import static android.speech.tts.TextToSpeech.ERROR;
 
-public class MainActivity extends AppCompatActivity implements
+public class MainActivity extends MyWifiBaseActivity implements
         Robot.AsrListener,
         Robot.WakeupWordListener,
         //Robot.ConversationViewAttachesListener,
@@ -123,7 +128,10 @@ public class MainActivity extends AppCompatActivity implements
         //OnUserInteractionChangedListener,
         OnGoToLocationStatusChangedListener {
 
-    public static final long ENDOFINTERACTION_TIMEOUT = 30000;
+    public static final String MY_PREFS_NAME = "MY_PREFS";
+    public static final String BUTTON_CLICKS = "BUTTON_CLICKS";
+
+    public static final long ENDOFINTERACTION_TIMEOUT = 20000;
     private final Handler endOfInteractionHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -266,9 +274,7 @@ public class MainActivity extends AppCompatActivity implements
         resetDisconnectTimer();
 
         // Refresh Fragment for indices, reset to page 1
-        if (language == Locale.KOREAN)
-            mPager.setAdapter(pagerAdapter);
-        else mPager.setAdapter(pagerAdapter_en);
+        mPager.setAdapter(language == Locale.KOREAN? pagerAdapter: pagerAdapter_en);
     }
 
     @Override
@@ -286,6 +292,7 @@ public class MainActivity extends AppCompatActivity implements
     TextView TtsText;
     TextView Notice;
 
+    @SuppressLint("SetTextI18n")
     public void setLanguage(View view) {
         if (language == Locale.KOREAN) { // 영어로 바뀌는 경우
             setEnglish(view);
@@ -398,18 +405,7 @@ public class MainActivity extends AppCompatActivity implements
         stop_talking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //dialog.dismiss();
-                ConnectivityManager cm =
-                        (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-
-                NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-                boolean isConnected = activeNetwork != null &&
-                        activeNetwork.isConnectedOrConnecting();
-
-                //Log.d("Test: isConnected", String.valueOf(isConnected));
-
-                //if (!isConnected)
-                //    speak("안녕!");
+                dialog.dismiss();
             }
         });
 
@@ -438,8 +434,25 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-        // 버튼 구성 편집 관련한 array 초기화
-        indices = new int[] {1, 2, 3, 4, 5, 6, 7, 8};
+        Button noticeButton = findViewById(R.id.notice_btn);
+        noticeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 버튼이지만 계속 정보가 바뀌므로 agent와 연결할 수 밖에 없음
+                QueryInput queryInput = QueryInput.newBuilder()
+                        .setText(TextInput.newBuilder()
+                                .setText("학부 공지")
+                                .setLanguageCode("ko")) // 현재 웹훅은 한글만 가능
+                        .build();
+
+                new RequestJavaV2Task(MainActivity.this, session, sessionsClient, queryInput).execute();
+            }
+        });
+
+        // 버튼 구성 편집 관련한 array 초기화, 처음 Install 이면 1 ~ 8로.
+        SharedPreferences prefs = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE);
+        indices = stringToIntArray(prefs.getString("indices", "0,1,2,3,4,5,6,7"), ",", 8).clone();
+        Log.d("Test: ", intArrayToString(indices, " "));
 
         //ViewPager2
         mPager = findViewById(R.id.viewpager);
@@ -768,9 +781,8 @@ public class MainActivity extends AppCompatActivity implements
                                             if (!dialog.isShowing())
                                                 dialog.show();
 
-                                            askQuestionWithLan(
-                                                    "전기정보공학부 행정실에 무슨 일로 오셨나요?",
-                                                    "How may I help you?");
+                                            // Dialogflow history 에 기록.
+                                            sendRequest("greeting");
                                         }
                                     }
                                 }
@@ -798,15 +810,6 @@ public class MainActivity extends AppCompatActivity implements
         };
     }
 
-    /*
-    int changeWidth(float input) {
-        return (int)(input * 8 / 3);
-    }
-
-    int changeHeight (float input) {
-        return (int)(input * 2.5);
-    }*/
-
     private void askQuestion(String question) {
         runOnUiThread(new Runnable() {
             @Override
@@ -824,10 +827,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void askQuestionWithLan(String korean, String english) {
-        if (language == Locale.KOREAN)
-            askQuestion(korean);
-        else
-            askQuestion(english);
+        askQuestion(language == Locale.KOREAN? korean: english);
     }
 
     private void speak(String sentence) {
@@ -846,10 +846,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void speakWithLan(String korean, String english) {
-        if (language == Locale.KOREAN)
-            speak(korean);
-        else
-            speak(english);
+        speak(language == Locale.KOREAN? korean: english);
     }
 
     @Override
@@ -871,21 +868,8 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         }
-/*
-        if (requestCode == 0) { // 선생님 이동 팝업
-            Bundle bundle = data.getExtras();
-            int[] updates = bundle.getIntArray("updates");
 
-            for (int i = 0; i < 8; i++)
-                if (updates[i] != 0) // 변화가 필요한 버튼만 해당.
-                    indices[i] = updates[i];
-
-            // Refresh Fragment.
-            if (language == Locale.KOREAN)
-                mPager.setAdapter(pagerAdapter);
-            else mPager.setAdapter(pagerAdapter_en);
-        }*/
-
+        // 설정 화면에서 메인 화면으로
         if (requestCode == 100) {
             Bundle bundle = data.getExtras(); // settingIsLocked null 불가능
             settingIsLocked = bundle.getBoolean("settingIsLocked");
@@ -908,25 +892,20 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void sendRequest(String input) {
-        String lan = "ko";
-        if (language == Locale.ENGLISH) lan = "en";
-
         QueryInput queryInput = QueryInput.newBuilder()
                 .setText(TextInput.newBuilder()
                         .setText(input)
-                        .setLanguageCode(lan))
+                        .setLanguageCode(language == Locale.KOREAN? "ko": "en"))
                 .build();
 
         new RequestJavaV2Task(MainActivity.this, session, sessionsClient, queryInput).execute();
     }
 
-    public void callbackV2(DetectIntentResponse response) { // RequestJavaV2Task 함수에 의해 불려지는 callback 함수
+    // RequestJavaV2Task 함수에 의해 불려지는 callback 함수
+    public void callbackV2(DetectIntentResponse response) {
         if (response != null) {
             QueryResult result = response.getQueryResult();
-
-            // Process aiResponse here.
             String botReply = result.getFulfillmentText();
-            // Log.d(TAG, "callbackV2: botReply - " + botReply);
 
             // Intent name 저장 (테미 이동과 관련).
             String intentName = result.getIntent().getDisplayName();
@@ -956,73 +935,100 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
 
-            // 테미가 이동하는 경우.
+            // 테미가 이동하는 경우
             if (intentName.equals("MoveTemi-Yes")) {
                 speakWithLan(teacherAt319_Name[indexOfTeacher] + " 선생님 자리로 이동합니다.", botReply);
                 robot.goTo(teacherAt319_Name[indexOfTeacher] + " 선생님");
-            }
-
-            else if (intentName.equals("GoToHomeBase")) {
+            } else if (intentName.equals("GoToHomeBase")) {
                 speak(botReply);
                 robot.goTo("home base");
             } else if (intentName.equals("GoToStandBy")) {
                 speak(botReply);
                 robot.goTo("행정실 입구");
-            } else if (intentName.equals("TemperatureCheck")) { // 체온 측정하는 코드, Dialogflow에서 'Temperature_Check' 인텐트에 의한 리스폰스
-                ThermoCheck();
-            } else if (botReply.contains("온도")) {
+            }
+
+            /* else if (intentName.equals("TemperatureCheck")) {
+                ThermoCheck(); */
+
+            // 팝업과 연관된 답변 (답변이 너무 길거나 추가 설명이 필요한 경우)
+            else if (intentName.equals("Question_Weather")) {
                 speak(botReply);
                 Intent intent = new Intent(MainActivity.this, Web.class);
                 intent.putExtra("url", "https://weather.naver.com/today/09620735");
                 startActivity(intent);
-            } else if (botReply.contains("소반")) {
+            } else if (intentName.equals("Question_FoodMenu")) {
                 speak("오늘의 학식 메뉴를 알려드립니다.");
                 Intent intent = new Intent(MainActivity.this, PopupActivity2.class);
                 intent.putExtra("text", botReply);
                 startActivity(intent);
-            }
-
-            else if (intentName.equals("Question_Access")) {
+            } else if (intentName.equals("Question_Access")) {
                 speakWithLan("출입등록 방법을 안내해드립니다.", "Follow the instructions to register access.");
-                Intent intent;
-                if (language == Locale.KOREAN)
-                    intent = new Intent(MainActivity.this, PopupActivity3.class);
-                else
-                    intent = new Intent(MainActivity.this, PopupActivity3En.class);
+                Intent intent = new Intent(MainActivity.this,
+                        language == Locale.KOREAN? PopupActivity3.class: PopupActivity3En.class);
                 intent.putExtra("access", botReply);
                 startActivity(intent);
-            }
-
-            else if (intentName.equals("Question_Certificate")) {
+            } else if (intentName.equals("Question_Certificate")) {
                 speakWithLan("증명서 발급 방법을 안내해드립니다.", "Follow the instructions to print your certificate.");
-                Intent intent;
-                if (language == Locale.KOREAN)
-                    intent = new Intent(MainActivity.this, PopupActivity3.class);
-                else
-                    intent = new Intent(MainActivity.this, PopupActivity3En.class);
+                Intent intent = new Intent(MainActivity.this,
+                        language == Locale.KOREAN? PopupActivity3.class: PopupActivity3En.class);
                 intent.putExtra("mysnu", botReply);
                 startActivity(intent);
-            }
-
-            else if (intentName.equals("Question_Locker")) {
+            } else if (intentName.equals("Question_Locker")) {
                 speakWithLan("사물함 신청 방법을 안내해드립니다.", "Follow the instructions to apply for a locker.");
-                Intent intent;
-                if (language == Locale.KOREAN)
-                    intent = new Intent(MainActivity.this, PopupActivity3.class);
-                else
-                    intent = new Intent(MainActivity.this, PopupActivity3En.class);
+                Intent intent = new Intent(MainActivity.this,
+                        language == Locale.KOREAN? PopupActivity3.class: PopupActivity3En.class);
                 intent.putExtra("locker", botReply);
                 startActivity(intent);
             }
 
-            // 그 이외는 Dialogflow 답변을 그대로 읽어줌. 물음표 여부를 통해서 다음 대답을 받을지 판단 (추가적인 context로 추후 구분 가능성).
+            // Depth로 설명된 Intent의 경우
+            else if (intentName.equals("current_scholarship")) {
+                speakWithLan("현재 신청 가능한 장학금을 알려드립니다.", "These are the scholarships you can currently apply for.");
+                Intent intent = new Intent(MainActivity.this,
+                        language == Locale.KOREAN ? PopupActivity2.class : PopupActivity2En.class);
+                intent.putExtra("text", botReply);
+                startActivity(intent);
+            } else if (intentName.equals("Question_Scholarship_Specific")) {
+                if (botReply.equals("실패"))
+                    speak("현재 신청이 불가한 장학금이거나,\n오류가 발생했습니다.");
+                else {
+                    speakWithLan("요청하신 장학금 관련 답변입니다.", "Please read the following.");
+                    Intent intent = new Intent(MainActivity.this, Web.class);
+                    intent.putExtra("url", botReply);
+                    startActivity(intent);
+                }
+            } else if (intentName.contains("Question_Scholarship")) {
+                speakWithLan("요청하신 장학금 관련 답변입니다.", "Please read the following.");
+                Intent intent = new Intent(MainActivity.this,
+                        language == Locale.KOREAN? PopupActivity2.class: PopupActivity2En.class);
+                intent.putExtra("text", botReply);
+                startActivity(intent);
+            } else if (intentName.equals("Question_영문성명변경")) {
+                speakWithLan("영문성명변경 관련 답변입니다.", "Please read the following.");
+                Intent intent = new Intent(MainActivity.this,
+                        language == Locale.KOREAN? PopupActivity2.class: PopupActivity2En.class);
+                intent.putExtra("text", botReply);
+                startActivity(intent);
+            } else if (intentName.equals("Question_전공학습도우미")) {
+                speakWithLan("전공학습도우미 스케줄 관련 답변입니다.", "Please read the following.");
+                Intent intent = new Intent(MainActivity.this,
+                        language == Locale.KOREAN? PopupActivity2.class: PopupActivity2En.class);
+                intent.putExtra("text", botReply);
+                startActivity(intent);
+            } else if (intentName.equals("Question_Notice")) {
+                speakWithLan("최근 학부 공지입니다.\n자세한 내용은 학부 홈페이지를 방문해주세요.", "Please read the following.");
+                Intent intent = new Intent(MainActivity.this,
+                        language == Locale.KOREAN? PopupActivity2.class: PopupActivity2En.class);
+                intent.putExtra("text", botReply);
+                startActivity(intent);
+            }
+
+            // 그 이외는 speak or ask botReply, exception of button
             else {
                 if (botReply.contains("?"))
                     askQuestion(botReply);
                 else {
-                    if (botReply.contains("button"))
-                        return;
-                    else
+                    if (!botReply.contains("button"))
                         speak(botReply);
                 }
             }
@@ -1245,5 +1251,25 @@ public class MainActivity extends AppCompatActivity implements
         intent.putExtra("settingIsLocked", settingIsLocked);
         startActivityForResult(intent, 100);
         overridePendingTransition(R.anim.slide_out, 0);
+    }
+
+    public static String intArrayToString(int[] arr, String delimiter) {
+        StringBuilder str = new StringBuilder();
+        for (int i = 0; i < arr.length; i++) {
+            str.append(arr[i]).append(delimiter);
+        }
+
+        return str.toString();
+    }
+
+    public static int[] stringToIntArray(String input, String delimiter, int length) {
+        int[] arr = new int[length];
+
+        StringTokenizer st = new StringTokenizer(input, delimiter);
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] = Integer.parseInt(st.nextToken());
+        }
+
+        return arr;
     }
 }

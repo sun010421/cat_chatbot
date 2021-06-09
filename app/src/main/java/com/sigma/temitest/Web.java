@@ -26,7 +26,6 @@ public class Web extends MyBaseActivity {
 
         final Button toMain = (Button) findViewById(R.id.main_btn);
 
-
         toMain.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

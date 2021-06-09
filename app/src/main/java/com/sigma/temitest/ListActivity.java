@@ -32,11 +32,11 @@ public class ListActivity extends MyBaseActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView parent, View v, int position, long id) {
-                if (myAdapter.getItem(position) == currentItem) // 자기 자신은 누르지 못하도록.
+                if (myAdapter.getItem(position) == currentItem) // 자기 자신은 못 누르도록
                     return;
 
                 Intent intent = new Intent();
-                intent.putExtra("toChangeIndex", myAdapter.getItem(position)); // data is the value you need in parent
+                intent.putExtra("toChangeIndex", myAdapter.getItem(position));
                 setResult(0, intent);
                 finish();
             }
@@ -45,7 +45,7 @@ public class ListActivity extends MyBaseActivity {
 
     public void initializeData() {
         DataList = new ArrayList<Integer>();
-        for (int i = 1; i <= ButtonNumber.num; i++)
+        for (int i = 0; i < ButtonNumber.num; i++)
             DataList.add(i);
     }
 }

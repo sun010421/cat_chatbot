@@ -18,7 +18,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="70dp"
-            android:textColor="@color/colorPrimary"
+            android:textColor="@color/transparent"
             android:alpha="0.5"
             android:textSize="@dimen/buttonText"
             android:text="SETTINGS"

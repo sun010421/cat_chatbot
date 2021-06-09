@@ -2,7 +2,9 @@ package com.sigma.temitest;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +16,7 @@ import androidx.fragment.app.Fragment;
 
 import java.util.ArrayList;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.sigma.temitest.ButtonNumber.ACCESS;
 import static com.sigma.temitest.ButtonNumber.APPLY;
 import static com.sigma.temitest.ButtonNumber.CENTER;
@@ -96,6 +99,14 @@ public class FragmentSecondEn extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent intent;
+
+                SharedPreferences prefs = ((MainActivity) getActivity()).getSharedPreferences(MainActivity.BUTTON_CLICKS, MODE_PRIVATE);
+                int[] button_clicks = MainActivity.stringToIntArray(prefs.getString("indices", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"), ",", 24).clone();
+                button_clicks[index] = button_clicks[index] + 1;
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString("indices", MainActivity.intArrayToString(button_clicks, ","));
+                editor.apply();
+                Log.d("Test: ", MainActivity.intArrayToString(button_clicks, ","));
 
                 switch (index) {
                     case SCHOLARSHIP:

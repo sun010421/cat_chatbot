@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@drawable/custom_popup"
+    android:orientation="vertical"
+    android:layout_width="1000dp"
+    android:layout_height="300dp">
+
+    <TextView
+        android:id="@+id/alertTitle"
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:gravity="center|bottom"
+        android:textSize="@dimen/buttonText"
+        android:textColor="@color/red"
+        android:fontFamily="@font/nanumsquare_bold"
+        android:text="@string/alert_title" />
+
+    <TextView
+        android:id="@+id/alertBody"
+        android:lineSpacingExtra="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="190dp"
+        android:gravity="center"
+        android:textSize="@dimen/buttonText_en"
+        android:textColor="#000"
+        android:fontFamily="@font/nanumsquare_bold"
+        android:text="@string/alert_body" />
+</LinearLayout>

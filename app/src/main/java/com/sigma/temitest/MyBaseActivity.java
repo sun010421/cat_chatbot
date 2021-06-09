@@ -10,8 +10,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class MyBaseActivity extends AppCompatActivity {
-    public final long DISCONNECT_TIMEOUT = 30000;
+public class MyBaseActivity extends MyWifiBaseActivity {
+    public final long DISCONNECT_TIMEOUT = 20000;
 
     private final Handler endOfInteractionHandler = new Handler(new Handler.Callback() {
         @Override

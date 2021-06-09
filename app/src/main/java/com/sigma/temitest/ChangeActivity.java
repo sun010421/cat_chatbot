@@ -2,6 +2,7 @@ package com.sigma.temitest;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,12 +14,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 
 public class ChangeActivity extends MyBaseActivity {
-    ArrayList<Button> buttons;
+    int[] currentIndices;
     Button checkedButton;
 
-    int[] currentIndices;
-    int[] savedIndices;
-
+    ArrayList<Button> buttons;
     Button save;
     Button close;
 
@@ -38,17 +37,21 @@ public class ChangeActivity extends MyBaseActivity {
         buttons.add(findViewById(R.id.button8));
 
         currentIndices = MainActivity.indices.clone();
-        savedIndices = currentIndices.clone();
 
         for (int i = 0; i < buttons.size(); i++)
-            setButtonView(buttons.get(i), currentIndices[i]); // Parent 화면과 동일하게 초기화.
+            setButtonView(buttons.get(i), currentIndices[i]); // 메인 화면과 동일하게 버튼 배치
 
         save = findViewById(R.id.save);
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // 눌렀을 때의 상황을, 나중에 종료할 때 업데이트 하도록.
-                savedIndices = currentIndices.clone();
+                MainActivity.indices = currentIndices.clone(); // 메인 화면에 반영
+
+                // 백업 업데이트
+                SharedPreferences prefs = getSharedPreferences(MainActivity.MY_PREFS_NAME, MODE_PRIVATE);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putString("indices", MainActivity.intArrayToString(currentIndices, ","));
+                editor.apply();
             }
         });
 
@@ -61,7 +64,7 @@ public class ChangeActivity extends MyBaseActivity {
         });
     }
 
-    // 중복되는 버튼이 있는 경우, 원래 것을 바꿔치기 하도록.
+    // 바꾸려는 버튼이 중복된다면, 위치 바꿔치기
     public void setButtonViewDriver(Button button, int index) {
         for (int i = 0; i < currentIndices.length; i++) {
             if (currentIndices[i] == index) {
@@ -90,14 +93,13 @@ public class ChangeActivity extends MyBaseActivity {
             @Override
             public void onClick(View view) {
                 checkedButton = button;
-
                 Intent intent = new Intent(ChangeActivity.this, ListActivity.class);
-                intent.putExtra("currentItem", currentIndices[buttons.indexOf(button)]);
+                intent.putExtra("currentItem", currentIndices[buttons.indexOf(button)]); // 자기 자신은 이후에 못 선택하도록 보내줌
                 startActivityForResult(intent,0);
             }
         });
 
-        currentIndices[buttons.indexOf(button)] = index; // list 조정.
+        currentIndices[buttons.indexOf(button)] = index; // list 업데이트
     }
 
     @Override
@@ -108,14 +110,7 @@ public class ChangeActivity extends MyBaseActivity {
 
         Bundle b = data.getExtras();
         int index = b.getInt("toChangeIndex");
-
         setButtonViewDriver(checkedButton, index);
-    }
-
-    @Override
-    public void finish() {
-        MainActivity.indices = savedIndices.clone();
-        super.finish();
     }
 }
 

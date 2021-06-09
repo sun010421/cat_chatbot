@@ -8,30 +8,30 @@ import androidx.appcompat.app.AppCompatActivity;
 public class ButtonNumber extends AppCompatActivity {
     public static final int num = 24;
 
-    public static final int SCHOLARSHIP = 1;
-    public static final int LOCKER = 2;
-    public static final int APPLY = 3;
-    public static final int GRADUATION = 4;
-    public static final int CURRICULUM = 5;
-    public static final int LAB = 6;
-    public static final int CERTIFICATE = 7;
-    public static final int GRADE = 8;
-    public static final int CENTER = 9;
-    public static final int CLUB = 10;
-    public static final int COUNSELING = 11;
-    public static final int DORMITORY = 12;
-    public static final int DOUBLEMAJOR = 13;
-    public static final int INOUT = 14;
-    public static final int MENTORING = 15;
-    public static final int SSAI = 16;
-    public static final int ACCESS = 17;
-    public static final int LIBRARY = 18;
-    public static final int MILITARY = 19;
-    public static final int DEAN = 20;
-    public static final int MANAGER = 21;
-    public static final int ENTRANCE = 22;
-    public static final int COMPUTER = 23;
-    public static final int COMMON = 24;
+    public static final int SCHOLARSHIP = 0;
+    public static final int LOCKER = 1;
+    public static final int APPLY = 2;
+    public static final int GRADUATION = 3;
+    public static final int CURRICULUM = 4;
+    public static final int LAB = 5;
+    public static final int CERTIFICATE = 6;
+    public static final int GRADE = 7;
+    public static final int CENTER = 8;
+    public static final int CLUB = 9;
+    public static final int COUNSELING = 10;
+    public static final int DORMITORY = 11;
+    public static final int DOUBLEMAJOR = 12;
+    public static final int INOUT = 13;
+    public static final int MENTORING = 14;
+    public static final int SSAI = 15;
+    public static final int ACCESS = 16;
+    public static final int LIBRARY = 17;
+    public static final int MILITARY = 18;
+    public static final int DEAN = 19;
+    public static final int MANAGER = 20;
+    public static final int ENTRANCE = 21;
+    public static final int COMPUTER = 22;
+    public static final int COMMON = 23;
 
     public static int getButtonText(int index) {
         switch (index) {
@@ -84,7 +84,7 @@ public class ButtonNumber extends AppCompatActivity {
             case COMMON:
                 return R.string.common_btn;
             default:
-                return 0;
+                return -1;
         }
     }
 
@@ -139,7 +139,7 @@ public class ButtonNumber extends AppCompatActivity {
             case COMMON:
                 return R.string.common_btn_en;
             default:
-                return 0;
+                return -1;
         }
     }
 
@@ -194,7 +194,7 @@ public class ButtonNumber extends AppCompatActivity {
             case COMMON:
                 return R.drawable.common_top;
             default:
-                return 0;
+                return -1;
         }
     }
 }

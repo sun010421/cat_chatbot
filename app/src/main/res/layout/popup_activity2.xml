@@ -6,7 +6,6 @@
     android:layout_width="1000dp"
     android:layout_height="300dp">
 
-    <!-- Notice -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="230dp">
@@ -17,13 +16,14 @@
             android:fontFamily="@font/nanumsquare_bold"
             android:gravity="center"
             android:layout_gravity="center"
-            android:layout_marginBottom="3dp"
             android:layout_width="900dp"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="35dp"
+            android:layout_marginTop="35dp"
+            android:lineSpacingMultiplier="1.1"
+            android:scrollbars = "vertical"/>
     </FrameLayout>
-    <!-- Notice -->
 
-    <!-- 닫기 버튼 -->
     <LinearLayout
         android:orientation="horizontal"
         android:gravity="center"

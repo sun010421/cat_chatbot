@@ -48,7 +48,7 @@ public class MyListAdapter extends BaseAdapter {
         textView.setText(App.getRes().getString(ButtonNumber.getButtonText(sample.get(position))));
 
         imageView.setImageResource(ButtonNumber.getButtonDrawable(sample.get(position)));
-        if (position % 2 == 1) // 홀수 자리의 preview들에 대해서.
+        if (position % 2 == 1) // 홀수 자리의 프리뷰는 색깔 교차
             imageView.setColorFilter(Color.parseColor("#BC80C6"));
 
         return view;
