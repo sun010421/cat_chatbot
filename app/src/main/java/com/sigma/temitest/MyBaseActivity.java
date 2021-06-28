@@ -1,16 +1,12 @@
 package com.sigma.temitest;
 
-import android.graphics.Color;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.Window;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class MyBaseActivity extends MyWifiBaseActivity {
+public class MyBaseActivity extends MyWifiBaseActivity { // 두 번째로 상위인 클래스, Timeout 측정하는 용도 (메인 엑티비티를 제외한 모든 엑티비티에서 상속)
     public final long DISCONNECT_TIMEOUT = 20000;
 
     private final Handler endOfInteractionHandler = new Handler(new Handler.Callback() {
@@ -23,7 +19,7 @@ public class MyBaseActivity extends MyWifiBaseActivity {
     private final Runnable endOfInteractionCallback = new Runnable() {
         @Override
         public void run() {
-            finish(); // activity 끝내기
+            finish();
         }
     };
 

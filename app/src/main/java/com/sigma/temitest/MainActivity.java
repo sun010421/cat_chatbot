@@ -29,41 +29,26 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.PointF;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.media.Image;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.preference.PreferenceManager;
-import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -86,7 +71,6 @@ import com.google.cloud.dialogflow.v2.QueryResult;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
-import com.google.mlkit.vision.face.FaceContour;
 import com.google.mlkit.vision.face.FaceDetection;
 import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
@@ -127,10 +111,7 @@ public class MainActivity extends MyWifiBaseActivity implements
         OnConversationStatusChangedListener,
         //OnUserInteractionChangedListener,
         OnGoToLocationStatusChangedListener {
-
-    public static final String MY_PREFS_NAME = "MY_PREFS";
-    public static final String BUTTON_CLICKS = "BUTTON_CLICKS";
-
+    
     public static final long ENDOFINTERACTION_TIMEOUT = 20000;
     private final Handler endOfInteractionHandler = new Handler(new Handler.Callback() {
         @Override
@@ -154,7 +135,7 @@ public class MainActivity extends MyWifiBaseActivity implements
                 }, 300);
             }
 
-            // 행정실 입구, 터치 끝난지 5초, 대화중이 아니면(이건 사실 필요 없음)
+            // 행정실 입구, 터치 끝난지 5초, 대화중이 아니면 (이건 사실 필요 없음) 사용자를 기다리는 얼굴인식 재개
             if (!whileTalking && atStandby) {
                 Log.d("Test: ", "Turn on the camera!");
                 runCamera();
@@ -178,46 +159,55 @@ public class MainActivity extends MyWifiBaseActivity implements
         stopCamera();
     }
 
-    private boolean whileTalking; // 사용자와 대화 중인지.
-    private boolean atStandby; // 대기 장소인지 여부.
+    public static final String MY_PREFS_NAME = "MY_PREFS"; // 버튼 구성을 저장하는 변수
+    public static final String BUTTON_CLICKS = "BUTTON_CLICKS"; // 각 버튼이 눌린 횟수들을 저장하는 변수 
 
-    private boolean atHome; // 홈 베이스인지 여부.
-    private boolean moving; // 이동중 여부.
-    private boolean interacting; // 상호작용 여부.
-    private boolean touching; // 터치 여부.
-    int detect_state; // 사람 감지 여부.
+    public static int[] indices; // 현재 화면의 버튼 구성을 나타내는 변수, 길이 8
+    
+    private boolean whileTalking; // 사용자와 대화 중인지 확인하는 변수
+    private boolean atStandby; // 대기 장소(행정실 입구) 인지 확인하는 변수
 
+    // 안드로이드 TTS에 필요한 변수들
     private TextToSpeech ttsSpeak;
     private TextToSpeech ttsAskQuestion;
-    private Locale language;
+    private Locale language; // 현재 테미의 언어를 확인하는 변수
 
-    private Robot robot;
-
+    private Robot robot; // 테미 SDK 연동하는 변수
+    
+    // 다이얼로그플로우 연동에 필요한 변수들
     private SessionsClient sessionsClient;
     private SessionName session;
-
-    int prev_conv_status = 0;
+    
+    int prev_conv_status = 0; // OnConversationStatusChanged 함수와 관련된 변수
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private String uuid = UUID.randomUUID().toString();
+    private final String uuid = UUID.randomUUID().toString();
 
+    // 선생님 자리로의 이동에 필요한 변수들
     private String[] teacherAt319_Name;
-    private int indexOfTeacher; // 테미가 안내해주려는 선생님이 배열에서 몇번째인지 나타냄.
+    private int indexOfTeacher; // 테미가 안내해주려는 선생님이 배열에서 몇 번째인지 나타내는 변수
+    
+    Dialog dialog; // 대화 화면에 대한 변수
+    AlertDialog alertDialog; // 로그인 화면에 대한 변수
+    boolean settingIsLocked; // 현재 설정 창이 잠겨있는지 확인하는 변수
 
-    ImageView mic;  // User가 말할 때 나타나는 마이크 모양 아이콘
+    // UI 관련 변수들
+    ImageView mic;
     Button start_talking;
     Button stop_talking;
     Button language_btn;
+    TextView AsrText;
+    TextView TtsText;
+    TextView Notice;
 
     // ViewPager 관련 변수 선언
     private ViewPager2 mPager;
     private MyAdapter pagerAdapter;
     private FragmentStateAdapter pagerAdapter_en;
-    private int num_page = 2;
+    private final int num_page = 2;
     private CircleIndicator3 mIndicator;
 
-    public static int[] indices;
-
+    // 카메라 제어 및 얼굴인식 관련 변수들
     private static final String[] CAMERA_PERMISSION = new String[]{Manifest.permission.CAMERA};
     private static final int CAMERA_REQUEST_CODE = 10;
 
@@ -230,18 +220,12 @@ public class MainActivity extends MyWifiBaseActivity implements
     private ImageAnalysis imageAnalysis;
     private ImageAnalysis.Analyzer analyzer;
     private int frameRateBySec = 0;
-
-    //Canvas canvas;
-    //Bitmap bitmap;
-
-    //int width;
-    //int height;
-
+    
     @Override
     protected void onStart() {
         Log.d("Test: ", "onStart");
-
         super.onStart();
+        
         Robot.getInstance().addAsrListener(this);
         Robot.getInstance().addWakeupWordListener(this);
         //Robot.getInstance().addConversationViewAttachesListenerListener(this);
@@ -252,9 +236,10 @@ public class MainActivity extends MyWifiBaseActivity implements
     }
 
     @Override
-    protected void onStop() { // 테미가 대기모드로 전환시, 혹은 다른 activity가 호출되면 이 함수가 불림.
+    protected void onStop() { // 메인 엑티비티에서 벗어나면 호출되는 함수
         Log.d("Test: ", "onStop");
         super.onStop();
+        
         Robot.getInstance().removeAsrListener(this);
         Robot.getInstance().removeWakeupWordListener(this);
         //Robot.getInstance().removeConversationViewAttachesListenerListener(this);
@@ -269,60 +254,20 @@ public class MainActivity extends MyWifiBaseActivity implements
 
     @Override
     protected void onResume() {
-        super.onResume();
         Log.d("Test: ", "onResume");
+        super.onResume();
+        
         resetDisconnectTimer();
-
         // Refresh Fragment for indices, reset to page 1
         mPager.setAdapter(language == Locale.KOREAN? pagerAdapter: pagerAdapter_en);
     }
 
     @Override
     protected void onPause() {
-        super.onPause();
         Log.d("Test: ", "onPause");
+        super.onPause();
+        
         stopDisconnectTimer();
-    }
-
-    Dialog dialog;
-    AlertDialog alertDialog;
-    boolean settingIsLocked;
-
-    TextView AsrText;
-    TextView TtsText;
-    TextView Notice;
-
-    @SuppressLint("SetTextI18n")
-    public void setLanguage(View view) {
-        if (language == Locale.KOREAN) { // 영어로 바뀌는 경우
-            setEnglish(view);
-            language_btn.setText("Korean");
-        }
-
-        else { // 한글로 바뀌는 경우
-            setKorean(view);
-            language_btn.setText("English");
-        }
-    }
-
-    public void setKorean(View view) {
-        mPager.setAdapter(pagerAdapter);
-        language = Locale.KOREAN;
-        ttsSpeak.setLanguage(language);
-        ttsAskQuestion.setLanguage(language);
-        start_talking.setText(R.string.start_talking);
-        stop_talking.setText(R.string.stop_talking);
-        Notice.setText(R.string.notice);
-    }
-
-    public void setEnglish(View view) {
-        mPager.setAdapter(pagerAdapter_en);
-        language = Locale.ENGLISH;
-        ttsSpeak.setLanguage(language);
-        ttsAskQuestion.setLanguage(language);
-        start_talking.setText(R.string.start_talking_en);
-        stop_talking.setText(R.string.stop_talking_en);
-        Notice.setText(R.string.notice_en);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -333,18 +278,18 @@ public class MainActivity extends MyWifiBaseActivity implements
         setContentView(R.layout.activity_main);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 
-        robot = Robot.getInstance(); // get an instance of the robot in order to begin using its features.
-
+        robot = Robot.getInstance(); // Get an instance of the robot in order to begin using its features
         initV2Chatbot();
 
+        // dialog 변수 초기화
         LayoutInflater inflater = getLayoutInflater();
         @SuppressLint("InflateParams") final View dialogView = inflater.inflate(R.layout.dialog, null);
-
-        // 외부 화면 터치 시 자동으로 dismiss 됨 (대화 종료 1)
+        
         dialog = new Dialog(MainActivity.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.setContentView(dialogView);
+        dialog.getWindow().setDimAmount(0.85f); // 조금 더 짙은 배경을 위해서 필요한 함수
+        dialog.setContentView(dialogView); // 외부 화면 터치 시 자동으로 dismiss 됨 (대화 종료 1)
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialog) {
@@ -352,10 +297,10 @@ public class MainActivity extends MyWifiBaseActivity implements
                 stopCamera();
             }
         });
-
+        
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
-            public void onDismiss(DialogInterface dialog) { // dialog 창이 없어지고, end of conversation 관련한 모든 조취.
+            public void onDismiss(DialogInterface dialog) { // Dialog dismiss 시 대호 종료를 위해 취할 조취들
                 robot.finishConversation();
                 ttsSpeak.stop();
                 ttsAskQuestion.stop();
@@ -365,30 +310,43 @@ public class MainActivity extends MyWifiBaseActivity implements
                 mic.setVisibility(View.INVISIBLE);
 
                 whileTalking = false;
-                Log.d("Test: ", String.valueOf(false));
+                Log.d("Test: ", "whileTalking - false");
                 resetDisconnectTimer();
             }
         });
 
-        AsrText = dialogView.findViewById(R.id.AsrText);
-        TtsText = dialogView.findViewById(R.id.TtsText);
-
-        Resources resources = getResources();
-        teacherAt319_Name = resources.getStringArray(R.array.teachers_name);
-
-        whileTalking = false;
-        Log.d("Test: ", String.valueOf(false));
-        resetDisconnectTimer();
-
-        moving = false;
-        atStandby = true; // 처음 앱이 실행되면, 위치와 관계 없이 사용자를 감지
-
+        initAlertDialog();
+        settingIsLocked = false; // 처음 앱이 실행될 때는 설정 창이 잠긴 상태
+        
         mic = dialogView.findViewById(R.id.mic);
         start_talking = findViewById(R.id.start_talking_btn);
         stop_talking = findViewById(R.id.stop_talking_btn);
+        language_btn = findViewById(R.id.language_btn);
+        AsrText = dialogView.findViewById(R.id.AsrText);
+        TtsText = dialogView.findViewById(R.id.TtsText);
         Notice = findViewById(R.id.notice);
         Notice.setText(R.string.notice);
-        language_btn = findViewById(R.id.language_btn);
+        
+        Resources resources = getResources();
+        teacherAt319_Name = resources.getStringArray(R.array.teachers_name); // String 파일에서 가져오는 값 (보안을 위해서)
+        
+        whileTalking = false; // 처음 앱이 실행될 때는 대화 중이 아닌 상태
+        Log.d("Test: ", "whileTalking - false");
+        
+        atStandby = true; // 처음 앱이 실행되는 위치도 대기 장소로 간주, 따라서 타이머도 시작
+        resetDisconnectTimer();
+
+        // 설정 버튼
+        ImageButton settingsButton = findViewById(R.id.settings_btn);
+        settingsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (settingIsLocked) {
+                    stopDisconnectTimer();
+                    alertDialog.show();
+                } else openSettings();
+            }
+        });
 
         // 대화 시작 버튼
         start_talking.setOnClickListener(new View.OnClickListener() {
@@ -408,8 +366,25 @@ public class MainActivity extends MyWifiBaseActivity implements
                 dialog.dismiss();
             }
         });
+        
+        // 학부 최근 공지 버튼
+        Button noticeButton = findViewById(R.id.notice_btn);
+        noticeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // 정보가 수시로 변하므로 다이얼로그플로우와 연동
+                QueryInput queryInput = QueryInput.newBuilder()
+                        .setText(TextInput.newBuilder()
+                                .setText("학부 공지")
+                                .setLanguageCode("ko")) // 현재 관련 인텐트는 한글 옵션만 가능
+                        .build();
 
-        ImageButton FLIR = findViewById(R.id.thermometer_btn); // 체온 측정 버튼
+                new RequestJavaV2Task(MainActivity.this, session, sessionsClient, queryInput).execute();
+            }
+        });
+
+        // 체온 측정 버튼 (현재 사용되지 않음)
+        ImageButton FLIR = findViewById(R.id.thermometer_btn); 
         FLIR.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -417,54 +392,21 @@ public class MainActivity extends MyWifiBaseActivity implements
             }
         });
 
-        settingIsLocked = false;
-
-        // Alert dialog build
-        initAlertDialog();
-
-        ImageButton settingsButton = findViewById(R.id.settings_btn);
-        settingsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (settingIsLocked) {
-                    stopDisconnectTimer();
-                    alertDialog.show();
-                }
-                else openSettings();
-            }
-        });
-
-        Button noticeButton = findViewById(R.id.notice_btn);
-        noticeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 버튼이지만 계속 정보가 바뀌므로 agent와 연결할 수 밖에 없음
-                QueryInput queryInput = QueryInput.newBuilder()
-                        .setText(TextInput.newBuilder()
-                                .setText("학부 공지")
-                                .setLanguageCode("ko")) // 현재 웹훅은 한글만 가능
-                        .build();
-
-                new RequestJavaV2Task(MainActivity.this, session, sessionsClient, queryInput).execute();
-            }
-        });
-
-        // 버튼 구성 편집 관련한 array 초기화, 처음 Install 이면 1 ~ 8로.
         SharedPreferences prefs = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE);
-        indices = stringToIntArray(prefs.getString("indices", "0,1,2,3,4,5,6,7"), ",", 8).clone();
+        indices = stringToIntArray(prefs.getString("indices", "0,1,2,3,4,5,6,7"), ",", 8).clone(); // 처음 변수가 초기화되는 경우 1에서 8로 순차적으로 저장
         Log.d("Test: ", intArrayToString(indices, " "));
 
-        //ViewPager2
+        // ViewPager2
         mPager = findViewById(R.id.viewpager);
-        //Adapter
+        // Adapter (for fragment activity)
         pagerAdapter = new MyAdapter(this, num_page);
         pagerAdapter_en = new MyAdapterEn(this, num_page);
         mPager.setAdapter(pagerAdapter);
-        //Indicator
+        // Indicator
         mIndicator = findViewById(R.id.indicator);
         mIndicator.setViewPager(mPager);
         mIndicator.createIndicators(num_page, 0);
-        //ViewPager Setting
+        // ViewPager Setting
         mPager.setOrientation(ViewPager2.ORIENTATION_HORIZONTAL);
         mPager.setCurrentItem(0);
         mPager.setOffscreenPageLimit(1);
@@ -505,8 +447,10 @@ public class MainActivity extends MyWifiBaseActivity implements
             }
         });
 
-        // Android tts
-        language = Locale.KOREAN;
+        language = Locale.KOREAN; // 처음 앱이 실행될 때는 한국어로 설정
+
+        // 안드로이드 TTS 초기화
+        // 단순 대답과, 질문에 대한 세팅을 다르게 해야 하기 때문에 두 변수로 설정
         ttsSpeak = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -525,7 +469,7 @@ public class MainActivity extends MyWifiBaseActivity implements
                     @Override
                     public void run() {
                         whileTalking = true;
-                        Log.d("Test: ", String.valueOf(true));
+                        Log.d("Test: ", "whileTalking - true");
                         stopDisconnectTimer();
                         mic.setVisibility(View.INVISIBLE);
                     }
@@ -538,18 +482,17 @@ public class MainActivity extends MyWifiBaseActivity implements
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        // 이동 완료 후에 speaking 할 때는 dialog dismiss 할 것이 없음.
+                        // 이동 완료 후에 말하는 경우 Dialog가 나타나지 않음
                         if (!dialog.isShowing()) {
                             AsrText.setText("");
                             TtsText.setText("");
                             mic.setVisibility(View.INVISIBLE);
 
                             whileTalking = false;
-                            Log.d("Test: ", String.valueOf(false));
-                            //resetDisconnectTimer();
+                            Log.d("Test: ", "whileTalking - false");
                         }
 
-                        dialog.dismiss();
+                        dialog.dismiss(); // onDismiss 함수에 동작이 이미 추가된 상태
                     }
                 });
             }
@@ -579,7 +522,7 @@ public class MainActivity extends MyWifiBaseActivity implements
                     @Override
                     public void run() {
                         whileTalking = true;
-                        Log.d("Test: ", String.valueOf(true));
+                        Log.d("Test: ", "whileTalking - true");
                         stopDisconnectTimer();
                         mic.setVisibility(View.INVISIBLE);
                     }
@@ -591,8 +534,8 @@ public class MainActivity extends MyWifiBaseActivity implements
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        // conversation status changed 함수가 작동하기 위해서는 (askquestion에서, 말로는 잘 됨) wakeup만으로 안되고, askquestion이 호출되어야 함.
-                        // conversation status changed 함수가 필요한 이유 - 실시간 사용자 대답 업데이트를 위해서.
+                        // onConversationStatusChanged 함수가 작동하기 위해서는 wakeup만으로 안되고, askquestion이 호출되어야 하기 때문에,
+                        // 참고로 onConversationStatusChanged 함수가 필요한 이유 - Dialog 창에 실시간 대화 업데이트가 필요함
                         robot.askQuestion(".");
                         robot.wakeup();
                     }
@@ -606,6 +549,7 @@ public class MainActivity extends MyWifiBaseActivity implements
             public void onRangeStart(String utteranceId, int start, int end, int frame) {}
         });
 
+        // 카메라 제어 및 얼굴인식 초기화
         if (!hasCameraPermission())
             requestPermission();
         else {
@@ -629,17 +573,41 @@ public class MainActivity extends MyWifiBaseActivity implements
 
             initImageAnalysis();
         }
+    }
 
-        /*Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        width = size.x;
-        height = size.y;*/
+    // 여기부터는 보조 및 listener 함수들 정의
 
-        //bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        //canvas = new Canvas(bitmap);
-        //canvas.drawColor(Color.TRANSPARENT);
-        //((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
+    @SuppressLint("SetTextI18n")
+    public void setLanguage(View view) {
+        if (language == Locale.KOREAN) { // 영어로 바꿔야 하는 경우
+            setEnglish(view);
+            language_btn.setText("Korean");
+        }
+
+        else { // 한국어로 바꿔야 하는 경우
+            setKorean(view);
+            language_btn.setText("English");
+        }
+    }
+
+    public void setKorean(View view) {
+        mPager.setAdapter(pagerAdapter);
+        language = Locale.KOREAN;
+        ttsSpeak.setLanguage(language);
+        ttsAskQuestion.setLanguage(language);
+        start_talking.setText(R.string.start_talking);
+        stop_talking.setText(R.string.stop_talking);
+        Notice.setText(R.string.notice);
+    }
+
+    public void setEnglish(View view) {
+        mPager.setAdapter(pagerAdapter_en);
+        language = Locale.ENGLISH;
+        ttsSpeak.setLanguage(language);
+        ttsAskQuestion.setLanguage(language);
+        start_talking.setText(R.string.start_talking_en);
+        stop_talking.setText(R.string.stop_talking_en);
+        Notice.setText(R.string.notice_en);
     }
 
     private boolean hasCameraPermission() {
@@ -657,8 +625,10 @@ public class MainActivity extends MyWifiBaseActivity implements
         );
     }
 
+    // 카메라 제어 드라이버 함수
     private void runCamera() {
         Log.d("Test: ", "runCamera");
+        sendRequest("log: runCamera"); // 다이얼로그플로우에 기록
         cameraProvider.unbindAll();
         cameraProviderFuture.addListener(new Runnable() {
             @Override
@@ -675,7 +645,7 @@ public class MainActivity extends MyWifiBaseActivity implements
 
         Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
         CameraControl control = camera.getCameraControl();
-        control.setZoomRatio(2.0f);
+        control.setZoomRatio(2.0f); // 마스크 안끼는 시기가 오면 빼도 되는 함수 (마스크를 낀 사람의 경우 너무 얼굴이 작으면 인식조차 되지 않기 때문에)
     }
 
     private void stopCamera() {
@@ -695,7 +665,7 @@ public class MainActivity extends MyWifiBaseActivity implements
                 if (frameRateBySec % 5 == 0) {
                     frameRateBySec = 0;
 
-                    // YUV_420_888 - CameraX image style.
+                    // YUV_420_888 - CameraX image style
                     @SuppressLint("UnsafeExperimentalUsageError") Image mediaImage = image.getImage();
                     InputImage src = InputImage.fromMediaImage(mediaImage, image.getImageInfo().getRotationDegrees());
 
@@ -706,83 +676,31 @@ public class MainActivity extends MyWifiBaseActivity implements
                                 public void onSuccess(List<Face> faces) {
                                     Log.d("Test: ", "number of faces = " + String.valueOf(faces.size()));
 
-                                    if (faces.size() == 0) {
-                                        // canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                                        // ((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
+                                    if (faces.size() == 0)
                                         return;
-                                    }
 
-                                    // 화면에 잡힌 모든 얼굴에 대해서.
+                                    // 화면에 잡힌 모든 얼굴에 대해서 고려
                                     for (int i = 0; i < faces.size(); i++) {
-
                                         Face face = faces.get(i);
                                         Rect bounds = face.getBoundingBox();
                                         FaceLandmark leftEye = face.getLandmark(FaceLandmark.LEFT_EYE);
                                         FaceLandmark rightEye = face.getLandmark(FaceLandmark.RIGHT_EYE);
 
-                                    /*List<PointF> contour = null;
-                                    if (face.getContour(FaceContour.FACE) != null)
-                                        contour = face.getContour(FaceContour.FACE).getPoints();
-                                    */
+                                        // 얼굴의 위치 확인하는 로그
+                                        // Log.d("Test: ", String.valueOf(bounds.top));
+                                        // Log.d("Test: ", String.valueOf(bounds.bottom));
+                                        // Log.d("Test: ", String.valueOf(bounds.left));
+                                        // Log.d("Test: ", String.valueOf(bounds.right));
 
-                                        Log.d("Test: ", String.valueOf(bounds.top));
-                                        Log.d("Test: ", String.valueOf(bounds.bottom));
-                                        Log.d("Test: ", String.valueOf(bounds.left));
-                                        Log.d("Test: ", String.valueOf(bounds.right));
-                                        /////////////////////////////
-                                    /*Paint paint = new Paint();
-                                    paint.setColor(Color.RED);
-                                    paint.setStyle(Paint.Style.STROKE);
-                                    paint.setStrokeWidth(5f);
-
-                                    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                                    canvas.drawRect(new Rect(width - changeWidth(bounds.right), changeHeight(bounds.top), width - changeWidth(bounds.left), changeHeight(bounds.bottom)), paint);
-                                    */
-                                        /////////////////////////////
-
-                                    /*paint.setColor(Color.GREEN);
-
-                                    if (leftEye != null) {
-                                        Log.d("Test: ", String.valueOf(leftEye.getPosition().x));
-                                        Log.d("Test: ", String.valueOf(leftEye.getPosition().y));
-                                    }
-
-                                    if (rightEye != null) {
-                                        Log.d("Test: ", String.valueOf(rightEye.getPosition().x));
-                                        Log.d("Test: ", String.valueOf(rightEye.getPosition().y));
-                                    }
-                                    */
-
-                                        //if (leftEye != null) canvas.drawPoint(width - changeWidth(leftEye.getPosition().x), changeHeight(leftEye.getPosition().y), paint);
-                                        //if (rightEye != null) canvas.drawPoint(width - changeWidth(rightEye.getPosition().x), changeHeight(leftEye.getPosition().y), paint);
-                                        /////////////////////////////
-                                    /*
-                                    paint.setColor(Color.MAGENTA);
-
-                                    if (contour != null) {
-                                        for (int i = 0; i < contour.size(); i++) {
-                                            canvas.drawLine(
-                                                    width - changeWidth(contour.get(i % contour.size()).x),
-                                                    changeHeight(contour.get(i % contour.size()).y),
-                                                    width - changeWidth(contour.get((i + 1) % contour.size()).x),
-                                                    changeHeight(contour.get((i + 1) % contour.size()).y), paint);
-                                        }
-                                    }*/
-                                        /////////////////////////////
-
-                                        //((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
-
-                                        // 충분히 가까이 있고, 정면을 의식하고 있는 사용자의 경우에만 반기도록
-                                        if ((bounds.top - bounds.bottom) * (bounds.left - bounds.right) > 20000 &&
+                                        // 얼굴이 가까이 있고, 정면을 보고 있는 사용자의 경우에만 반기도록
+                                        if ((bounds.top - bounds.bottom) * (bounds.left - bounds.right) > 18000 &&
                                                 leftEye != null && rightEye != null &&
-                                                (rightEye.getPosition().x - leftEye.getPosition().x) > 40) {
+                                                (rightEye.getPosition().x - leftEye.getPosition().x) > 35) {
 
                                             stopCamera();
                                             if (!dialog.isShowing())
                                                 dialog.show();
-
-                                            // Dialogflow history 에 기록.
-                                            sendRequest("greeting");
+                                            sendRequest("greeting"); // 다이얼로그플로우에 얼굴인식 기록
                                         }
                                     }
                                 }
@@ -818,14 +736,14 @@ public class MainActivity extends MyWifiBaseActivity implements
             }
         });
 
-        // QUEUE_FLUSH: 초기화하고 새로 넣는 것, QUEUE_ADD: 현재 말하는거 다음으로 대기.
         ttsAskQuestion.speak(
                 question,
-                TextToSpeech.QUEUE_FLUSH,
+                TextToSpeech.QUEUE_FLUSH, // QUEUE_FLUSH: 초기화하고 새로 넣는 경우, QUEUE_ADD: 현재 말하는 것 다음에 하도록 대기하는 경우
                 null,
                 "question");
     }
 
+    // 언어를 고려하지 않아도 되는 함수
     private void askQuestionWithLan(String korean, String english) {
         askQuestion(language == Locale.KOREAN? korean: english);
     }
@@ -845,6 +763,7 @@ public class MainActivity extends MyWifiBaseActivity implements
                 "speak");
     }
 
+    // 언어를 고려하지 않아도 되는 함수
     private void speakWithLan(String korean, String english) {
         speak(language == Locale.KOREAN? korean: english);
     }
@@ -853,11 +772,11 @@ public class MainActivity extends MyWifiBaseActivity implements
     public void onActivityResult(int requestCode, int resultCode, @androidx.annotation.Nullable Intent data) {
         Log.d("Test: ", "onActivityResult");
         super.onActivityResult(requestCode, resultCode, data);
-        if (data == null) // timeout 된 경우
+        if (data == null) // Timeout 으로 인해 메인 엑티비티로 돌아온 경우
             return;
 
-        if (requestCode == 1) { // 선생님 이동
-            if (resultCode == RESULT_OK) { // Yes
+        if (requestCode == 1) { // 선생님 자리로 이동하는 팝업 이후
+            if (resultCode == RESULT_OK) { // 사용자가 OK 한 경우
                 String teacher = data.getStringExtra("teacher");
                 String result = data.getStringExtra("result");
                 if (result.equals("Yes")) {
@@ -869,16 +788,16 @@ public class MainActivity extends MyWifiBaseActivity implements
             }
         }
 
-        // 설정 화면에서 메인 화면으로
+        // 설정 화면에서 메인 엑티비티로 돌아온 경우
         if (requestCode == 100) {
-            Bundle bundle = data.getExtras(); // settingIsLocked null 불가능
+            Bundle bundle = data.getExtras(); // 가지고 온 값은 아무것도 없기에는 불가능
             settingIsLocked = bundle.getBoolean("settingIsLocked");
         }
     }
 
     private void initV2Chatbot() {
         try {
-            InputStream stream = getResources().openRawResource(R.raw.credential_reception_robot);
+            InputStream stream = getResources().openRawResource(R.raw.credential_reception_robot); // 다이얼로그플로우 연동된 구글 클라우드 프로젝트의 키
             GoogleCredentials credentials = GoogleCredentials.fromStream(stream);
             String projectId = ((ServiceAccountCredentials) credentials).getProjectId();
 
@@ -891,6 +810,7 @@ public class MainActivity extends MyWifiBaseActivity implements
         }
     }
 
+    // 다이얼로그플로우에 대화 요청을 보내는 함수
     public void sendRequest(String input) {
         QueryInput queryInput = QueryInput.newBuilder()
                 .setText(TextInput.newBuilder()
@@ -901,13 +821,13 @@ public class MainActivity extends MyWifiBaseActivity implements
         new RequestJavaV2Task(MainActivity.this, session, sessionsClient, queryInput).execute();
     }
 
-    // RequestJavaV2Task 함수에 의해 불려지는 callback 함수
+    // RequestJavaV2Task 클래스에 의해 불려지는 콜백 함수
     public void callbackV2(DetectIntentResponse response) {
         if (response != null) {
             QueryResult result = response.getQueryResult();
             String botReply = result.getFulfillmentText();
 
-            // Intent name 저장 (테미 이동과 관련).
+            // Intent name 저장 (테미 이동과 관련)
             String intentName = result.getIntent().getDisplayName();
 
             int num = result.getOutputContextsCount();
@@ -923,9 +843,8 @@ public class MainActivity extends MyWifiBaseActivity implements
                 }
             }
 
-            // 행정실(319호)에 계신 선생님에 대해서 사용자가 물어본 경우(= movetemi context가 있는 intent의 경우), 선생님 이름 저장.
+            // 행정실에 계신 선생님에 대해서 물어본 경우 선생님 이름 저장하는 부분
             if (check) {
-                // Log.d(TAG, "319호 선생님에 대한 질문");
                 for (int i = 0; i < teacherAt319_Name.length; i++) {
                     if (botReply.contains(teacherAt319_Name[i])) {
                         indexOfTeacher = i;
@@ -935,7 +854,7 @@ public class MainActivity extends MyWifiBaseActivity implements
                 }
             }
 
-            // 테미가 이동하는 경우
+            // 테미가 이동해야 하는 경우
             if (intentName.equals("MoveTemi-Yes")) {
                 speakWithLan(teacherAt319_Name[indexOfTeacher] + " 선생님 자리로 이동합니다.", botReply);
                 robot.goTo(teacherAt319_Name[indexOfTeacher] + " 선생님");
@@ -950,7 +869,7 @@ public class MainActivity extends MyWifiBaseActivity implements
             /* else if (intentName.equals("TemperatureCheck")) {
                 ThermoCheck(); */
 
-            // 팝업과 연관된 답변 (답변이 너무 길거나 추가 설명이 필요한 경우)
+            // 팝업과 연관된 답변 (즉 답변이 길거나 추가 설명이 필요한 경우)
             else if (intentName.equals("Question_Weather")) {
                 speak(botReply);
                 Intent intent = new Intent(MainActivity.this, Web.class);
@@ -981,7 +900,6 @@ public class MainActivity extends MyWifiBaseActivity implements
                 startActivity(intent);
             }
 
-            // Depth로 설명된 Intent의 경우
             else if (intentName.equals("current_scholarship")) {
                 speakWithLan("현재 신청 가능한 장학금을 알려드립니다.", "These are the scholarships you can currently apply for.");
                 Intent intent = new Intent(MainActivity.this,
@@ -1023,12 +941,12 @@ public class MainActivity extends MyWifiBaseActivity implements
                 startActivity(intent);
             }
 
-            // 그 이외는 speak or ask botReply, exception of button
+            // 그 이외는 speak or ask botReply 변수
             else {
                 if (botReply.contains("?"))
                     askQuestion(botReply);
                 else {
-                    if (!botReply.contains("button"))
+                    if (!botReply.contains("button") && !botReply.contains("log")) // 버튼 인텐트가 불린 경우는 예외
                         speak(botReply);
                 }
             }
@@ -1061,7 +979,8 @@ public class MainActivity extends MyWifiBaseActivity implements
     }
 
     public void ThermoCheck() {
-        speakWithLan("체온 측정 중입니다.", "Checking temperature.");
+        speakWithLan("체온 측정 중입니다.",
+                "Checking temperature.");
 
         new Thread(new Runnable() {
             @Override
@@ -1080,23 +999,23 @@ public class MainActivity extends MyWifiBaseActivity implements
         }).start();
     }
 
+    // 아래 오버라이드하는 Listener 함수들은 https://github.com/robotemi/sdk/wiki/ 를 참고
     @Override
-    public void onWakeupWord(String wakeupWord, int direction) {
-        // 이동 중간에 "헤이 테미"로 부른 경우, 이동 중지.
-        robot.stopMovement();
+    public void onWakeupWord(String wakeupWord, int direction) { // 테미의 WakeupWord 가 불린 경우
+        // "헤이 테미" 로 시작된 대화는 onConversationStatusChanged 함수가 호출됨
+        robot.stopMovement(); // 이동 중지
 
-        // "헤이 테미"로 대화 시작하는 경우 고려, 그 이외의 대화 시작은 버튼으로.
         if (!dialog.isShowing())
             dialog.show();
 
         whileTalking = true;
-        Log.d("Test: ", String.valueOf(true));
+        Log.d("Test: ", "whileTalking - true");
         stopDisconnectTimer();
         mic.setVisibility(View.VISIBLE);
     }
 
     @Override
-    public void onAsrResult(final @NonNull String asrResult) { // https://github.com/robotemi/sdk/wiki/Speech 참고
+    public void onAsrResult(final @NonNull String asrResult) {
         sendRequest(asrResult);
 
         try {
@@ -1113,24 +1032,24 @@ public class MainActivity extends MyWifiBaseActivity implements
     }
 
     @Override
-    public void onConversationStatusChanged(int status, @NotNull String text) { // https://github.com/robotemi/sdk/wiki/Speech 참고
-        Log.d(TAG, "Test: Conversation status has turned to number " + status + ".");
+    public void onConversationStatusChanged(int status, @NotNull String text) {
+        Log.d(TAG, "Test: Conversation status has turned to number " + status);
 
-        // listening 만 하다가 입력이 없어서 끝난 경우 (대화 종료 4)
+        // 듣기만 하다가 말이 없어서 대화가 끝나는 경우 (대화 종료 4)
         if (prev_conv_status == 1 && status == 0)
             dialog.dismiss();
 
-        if (status == 1) {  // Listening user's voice
+        if (status == 1) {  // 대화를 듣는 상태
             whileTalking = true;
-            Log.d("Test: ", String.valueOf(true));
+            Log.d("Test: ", "whileTalking - true");
             stopDisconnectTimer();
             mic.setVisibility(View.VISIBLE);
             AsrText.setText(text);
         }
 
-        if (status == 2) {  // NLP
+        if (status == 2) {  // NLP 하는 상태
             whileTalking = true;
-            Log.d("Test: ", String.valueOf(true));
+            Log.d("Test: ", "whileTalking - true");
             stopDisconnectTimer();
             AsrText.setText(text);
         }
@@ -1139,41 +1058,32 @@ public class MainActivity extends MyWifiBaseActivity implements
         prev_conv_status = status;
     }
 
-    // START, CALCULATING, GOING, COMPLETE, ABORT.
     @Override
     public void onGoToLocationStatusChanged(@NotNull String location, @NotNull String status, int descriptionID, @NotNull String description) { //https://github.com/robotemi/sdk/wiki/Locations 참고
         Log.d("Test: ", location + " " + status);
 
-        atStandby = false; // 일단 뭔가 status 변화가 있으면, 인사 안하도록.
-        atHome = false; // 이동 상태가 변하면 대기 장소나 홈 베이스에서 벗어나게 됨
-        robot.setAutoReturnOn(true);
+        atStandby = false; // 일단 뭔가 Status 변화가 있으면, 대기 장소를 벗어낫다고 가정
+        robot.setAutoReturnOn(true); // 테미의 설정 권한을 ON 시켜주기
         TtsText.setText("");
 
-        if (status.equals(OnGoToLocationStatusChangedListener.START)) moving = true;
-
-        else if (status.equals(OnGoToLocationStatusChangedListener.COMPLETE)) {
-            moving = false;
-
-            // Standby에 도착한 경우, 다시 인사 하도록 변수 설정.
+        if (status.equals(OnGoToLocationStatusChangedListener.COMPLETE)) {
             if (location.equals("행정실 입구")) {
-                atStandby = true;
+                atStandby = true; // Standby에 도착한 경우, 대기 장소에 도착했다고 변수 설정
                 resetDisconnectTimer();
             } else if (location.equals("home base")) {
-                atHome = true;
                 robot.setAutoReturnOn(false);
                 speakWithLan("홈베이스에 도착했습니다.", "Arrived at home base.");
             }
 
-            // 선생님 자리에 도착.
+            // 선생님 자리에 도착한 경우 (Dialog 는 나타나지 않도록)
             else
                 speakWithLan("도착했습니다. 다른 용무가 있으시면 말을 걸거나 버튼을 눌러주세요.",
                         "Arrived at location. Please call me or press button to continue.");
 
-        } else if (status.equals(OnGoToLocationStatusChangedListener.ABORT)) {
-            moving = false;
         }
     }
 
+    // 로그인 창 초기화하는 함수
     void initAlertDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
@@ -1198,7 +1108,7 @@ public class MainActivity extends MyWifiBaseActivity implements
                 if (strPassword.equals(getString(R.string.password))) {
                     closeKeyboard(view);
 
-                    // 키보드가 사라지고, alertDialog 창이 닫히는 것을 순차적으로 하기 위해 (UI의 간결함)
+                    // 시간 차의 이유: 키보드가 사라지고, 창이 닫히는 것을 순차적으로 하기 위해 (UI의 간결함)
                     Handler handler = new Handler();
                     handler.postDelayed(new Runnable() {
                         public void run() {
@@ -1247,6 +1157,7 @@ public class MainActivity extends MyWifiBaseActivity implements
     }
 
     private void openSettings() {
+        sendRequest("log: openSettings"); // 다이얼로그플로우에 기록
         Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
         intent.putExtra("settingIsLocked", settingIsLocked);
         startActivityForResult(intent, 100);

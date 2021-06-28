@@ -42,10 +42,10 @@ import static com.sigma.temitest.ButtonNumber.MILITARY;
 import static com.sigma.temitest.ButtonNumber.SCHOLARSHIP;
 import static com.sigma.temitest.ButtonNumber.SSAI;
 
-public class FragmentSecondEn extends Fragment {
+public class FragmentSecondEn extends Fragment { // 메인 화면의 첫 번째 페이지 (영어)
     ArrayList<Button> buttons;
 
-    private MainActivity mainActivity = (MainActivity)getActivity();
+    private MainActivity mainActivity = (MainActivity) getActivity();
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -100,6 +100,7 @@ public class FragmentSecondEn extends Fragment {
             public void onClick(View v) {
                 Intent intent;
 
+                // 버튼 클릭 백업 변수 업데이트
                 SharedPreferences prefs = ((MainActivity) getActivity()).getSharedPreferences(MainActivity.BUTTON_CLICKS, MODE_PRIVATE);
                 int[] button_clicks = MainActivity.stringToIntArray(prefs.getString("indices", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"), ",", 24).clone();
                 button_clicks[index] = button_clicks[index] + 1;

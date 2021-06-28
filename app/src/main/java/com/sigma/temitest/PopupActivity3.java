@@ -16,7 +16,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class PopupActivity3 extends MyBaseActivity {
+public class PopupActivity3 extends MyBaseActivity { // 사진 포함하는 팝업 클래스 (한국어)
     private static final String TAG = "PopupActivity";
     ImageView popupImage3;
     TextView popupText;
@@ -55,10 +55,11 @@ public class PopupActivity3 extends MyBaseActivity {
             }
         }
 
+        // 하이퍼링크 거는 코드
         SpannableString ss = new SpannableString(text);
 
         int startIndex = text.indexOf("http");
-        while (startIndex != -1) { // 돌아간다는 것은 링크가 있다는 것
+        while (startIndex != -1) { // 돌아간다는 것은 링크가 있다는 의미
             final int finalStartIndex = startIndex;
             int temp = text.indexOf("\n", finalStartIndex);
             final int finalEndIndex = temp == -1? text.length(): temp;

@@ -1,12 +1,9 @@
 package com.sigma.temitest;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -14,7 +11,7 @@ import android.widget.Button;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-public class Web extends MyBaseActivity {
+public class Web extends MyBaseActivity { // 웹 페이지 클래스
     private WebView webView;
     private String url;
     private Boolean language;
@@ -33,7 +30,7 @@ public class Web extends MyBaseActivity {
             }
         });
 
-        url = getIntent().getStringExtra("url");
+        url = getIntent().getStringExtra("url"); // 받은 URL 활용
 
         webView = (WebView) findViewById(R.id.webView);
         webView.getSettings().setJavaScriptEnabled(true);
@@ -49,8 +46,8 @@ public class Web extends MyBaseActivity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) { //뒤로가기 버튼 이벤트
-        if ((keyCode == KeyEvent.KEYCODE_BACK) && webView.canGoBack()) { //웹뷰에서 뒤로가기 버튼을 누르면 뒤로가짐
+    public boolean onKeyDown(int keyCode, KeyEvent event) { // 뒤로 가기 버튼 이벤트
+        if ((keyCode == KeyEvent.KEYCODE_BACK) && webView.canGoBack()) { // 뒤로 가기 버튼을 누르면 메인 엑티비티로 돌아가도록 설정
             webView.goBack();
             return true;
         }

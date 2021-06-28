@@ -4,10 +4,8 @@
     android:background="@drawable/custom_popup"
     android:orientation="vertical"
     android:layout_width="1000dp"
-    android:layout_height="300dp"
-    >
+    android:layout_height="300dp">
 
-    <!-- Notice -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="230dp"
@@ -25,9 +23,7 @@
             android:layout_width="900dp"
             android:layout_height="wrap_content" />
     </FrameLayout>
-    <!-- Notice -->
 
-    <!-- 닫기 버튼 -->
     <LinearLayout
         android:orientation="horizontal"
         android:gravity="center"
@@ -58,5 +54,4 @@
             android:layout_height="match_parent"
             android:onClick="No"/>
     </LinearLayout>
-    <!--// 닫기 버튼 -->
 </LinearLayout>

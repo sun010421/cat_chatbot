@@ -12,7 +12,6 @@ import android.widget.ExpandableListView;
 import android.widget.TextView;
 
 import com.robotemi.sdk.Robot;
-import com.robotemi.sdk.TtsRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +31,7 @@ public class SettingsActivity extends MyBaseActivity {
         robot = Robot.getInstance();
         settingIsLocked = getIntent().getBooleanExtra("settingIsLocked", false);
 
+        // 화면의 왼쪽에 디스플레이기 되기 위한 코드
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
         WindowManager.LayoutParams params = getWindow().getAttributes();
@@ -45,9 +45,9 @@ public class SettingsActivity extends MyBaseActivity {
 
         temp = new myGroup("조절");
         temp.child.add("볼륨·조명");
+        temp.child.add("위치 재조정"); // 테미가 자리를 잘 찾아가지 못할 때 영점 조절해주는 버튼
         temp.child.add("재시작");
         temp.child.add("전원 끄기");
-        //temp.child.add("이동 속도");
         DataList.add(temp);
 
         temp = new myGroup("버튼 구성");
@@ -56,7 +56,7 @@ public class SettingsActivity extends MyBaseActivity {
         temp.child.add("구성 초기화");
         DataList.add(temp);
 
-        temp = new myGroup("테미 설정");
+        temp = new myGroup("테미 설정"); // 테미 내부 설정으로 들어가는 버튼
         DataList.add(temp);
 
         temp = new myGroup("눌러서 잠금 해제");
@@ -77,8 +77,8 @@ public class SettingsActivity extends MyBaseActivity {
 
                 if (groupPosition == 0) {
                     String data = ((TextView) v.findViewById(R.id.childName)).getText().toString();
-
-                    if (data.equals("홈베이스")) data = "home base";
+                    if (data.equals("홈베이스"))
+                        data = "home base";
                     robot.goTo(data);
                 }
 
@@ -86,8 +86,10 @@ public class SettingsActivity extends MyBaseActivity {
                     if (childPosition == 0)
                         robot.setVolume(2);
                     else if (childPosition == 1)
-                        robot.restart();
+                        robot.repose();
                     else if (childPosition == 2)
+                        robot.restart();
+                    else if (childPosition == 3)
                         robot.shutdown();
                 }
 
@@ -99,13 +101,13 @@ public class SettingsActivity extends MyBaseActivity {
                         finish();
                     }
 
-                    else if (childPosition == 1) {
-                        // 클릭 백업 가져와서 구성 업데이트
+                    else if (childPosition == 1) { // 인기 구성 버튼이 눌린 경우
+                        // 클릭 백업 변수를 가져와서 버튼 구성 업데이트
                         SharedPreferences prefs = getSharedPreferences(MainActivity.BUTTON_CLICKS, MODE_PRIVATE);
                         int[] button_clicks = MainActivity.stringToIntArray(prefs.getString("indices", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"), ",", 24).clone();
                         setIndicesToPopular(button_clicks);
 
-                        // 버튼 구성 백업 업데이트
+                        // 위에 맞게 버튼 구성 백업 변수 업데이트
                         prefs = getSharedPreferences(MainActivity.MY_PREFS_NAME, MODE_PRIVATE);
                         SharedPreferences.Editor editor = prefs.edit();
                         editor.putString("indices", MainActivity.intArrayToString(MainActivity.indices, ","));
@@ -114,14 +116,14 @@ public class SettingsActivity extends MyBaseActivity {
                         finish();
                     }
 
-                    else {
-                        // 클릭 백업 초기화
+                    else { // 구성 초기화 버튼이 눌린 경우
+                        // 클릭 백업 변수 초기화
                         SharedPreferences prefs = getSharedPreferences(MainActivity.BUTTON_CLICKS, MODE_PRIVATE);
                         SharedPreferences.Editor editor = prefs.edit();
                         editor.putString("indices", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
                         editor.apply();
 
-                        // 버튼 구성 백업 초기화
+                        // 버튼 구성 백업 변수 초기화
                         MainActivity.indices = new int[]{0, 1, 2, 3, 4, 5, 6, 7};
 
                         prefs = getSharedPreferences(MainActivity.MY_PREFS_NAME, MODE_PRIVATE);
@@ -146,7 +148,7 @@ public class SettingsActivity extends MyBaseActivity {
                     robot.showAppList();
                 }
 
-                if (groupPosition == 4) {
+                if (groupPosition == 4) { // 설정 창의 잠김 상태 변환
                     settingIsLocked = !settingIsLocked;
                     adapter.changeLock();
                 }
@@ -157,7 +159,7 @@ public class SettingsActivity extends MyBaseActivity {
     }
 
     @Override
-    public void finish() {
+    public void finish() { // Timeout 으로 인한 종료도 이 함수가 호출된다는 점 참고
         Intent intent = new Intent();
         Bundle bundle = new Bundle();
         bundle.putBoolean("settingIsLocked", settingIsLocked);
@@ -175,6 +177,7 @@ public class SettingsActivity extends MyBaseActivity {
         for (int i = 0; i < arg.length; i++)
             arg[i] = i;
 
+        // Sorting 코드
         for (int i = 1; i < temp.length; i++) {
             int standard = temp[i];
             int aux = i - 1;

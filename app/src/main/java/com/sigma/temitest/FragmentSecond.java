@@ -44,7 +44,7 @@ import static com.sigma.temitest.ButtonNumber.MILITARY;
 import static com.sigma.temitest.ButtonNumber.SCHOLARSHIP;
 import static com.sigma.temitest.ButtonNumber.SSAI;
 
-public class FragmentSecond extends Fragment {
+public class FragmentSecond extends Fragment { // 메인 화면의 첫 번째 페이지 (한국어)
     ArrayList<Button> buttons;
 
     private MainActivity mainActivity = (MainActivity) getActivity();
@@ -59,10 +59,7 @@ public class FragmentSecond extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        //Log.d("Test: ", "onCreatedView on Fragment Second.");
-
-        // 일단 template부터 설치.
-        ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_2p, container, false);
+        ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_2p, container, false); // 일단 Template 부터 설치
 
         buttons = new ArrayList<Button>();
         buttons.add((Button) rootView.findViewById(R.id.button1));
@@ -79,10 +76,9 @@ public class FragmentSecond extends Fragment {
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        //Log.d("Test: ", "onActivityCreated on Fragment Second.");
         super.onActivityCreated(savedInstanceState);
 
-        int[] indicesOfButton = ((MainActivity) getActivity()).indices;
+        int[] indicesOfButton = ((MainActivity) getActivity()).indices; // 메인 엑티비티 변수 토대로 화면 버튼 구성
         for (int i = 0; i < indicesOfButton.length; i++)
             setButtonView(buttons.get(i), indicesOfButton[i]);
     }
@@ -106,6 +102,7 @@ public class FragmentSecond extends Fragment {
             public void onClick(View v) {
                 Intent intent;
 
+                // 버튼 클릭 백업 변수 업데이트
                 SharedPreferences prefs = ((MainActivity) getActivity()).getSharedPreferences(MainActivity.BUTTON_CLICKS, MODE_PRIVATE);
                 int[] button_clicks = MainActivity.stringToIntArray(prefs.getString("indices", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"), ",", 24).clone();
                 button_clicks[index] = button_clicks[index] + 1;
@@ -114,6 +111,7 @@ public class FragmentSecond extends Fragment {
                 editor.apply();
                 Log.d("Test: ", MainActivity.intArrayToString(button_clicks, ","));
 
+                // 24가지 버튼 선택지의 OnClick 행위
                 switch (index) {
                     case SCHOLARSHIP:
                         mainActivity.sendRequest("Press scholarship button");

@@ -5,7 +5,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-public class MyAdapterEn extends FragmentStateAdapter {
+public class MyAdapterEn extends FragmentStateAdapter { // Fragment 관리하는 클래스 (영어)
     public int mCount;
 
     public MyAdapterEn(FragmentActivity fa, int count) {
@@ -27,5 +27,4 @@ public class MyAdapterEn extends FragmentStateAdapter {
     }
 
     public int getRealPosition(int position) { return position % mCount; }
-
 }

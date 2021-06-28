@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class PopupActivity2En extends MyBaseActivity {
+public class PopupActivity2En extends MyBaseActivity { // 긴 답변 포함하는 팝업 클래스 (영어)
 
     private static final String TAG = "PopupActivity";
     TextView popupText2;
@@ -34,7 +34,7 @@ public class PopupActivity2En extends MyBaseActivity {
         SpannableString ss = new SpannableString(text);
 
         int startIndex = text.indexOf("http");
-        while (startIndex != -1) { // 돌아간다는 것은 링크가 있다는 것
+        while (startIndex != -1) { // 돌아간다는 것은 링크가 있다는 의미
             final int finalStartIndex = startIndex;
             int temp = text.indexOf("\n", finalStartIndex);
             final int finalEndIndex = temp == -1? text.length(): temp;
@@ -57,7 +57,6 @@ public class PopupActivity2En extends MyBaseActivity {
         popupText2.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
-    //확인 버튼 클릭
     public void Ok(View v){
         Log.d(TAG, "No: Press No Btn");
         finish();

@@ -2,13 +2,10 @@ package com.sigma.temitest;
 
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class MyWifiBaseActivity extends AppCompatActivity {
+public class MyWifiBaseActivity extends AppCompatActivity { // 가장 상위 (부모) 클래스, 와이파이 연결 끊김을 감지하는 용도
     WifiReceiver wifiReceiver;
 
     @Override

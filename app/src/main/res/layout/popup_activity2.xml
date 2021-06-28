@@ -42,5 +42,4 @@
             android:layout_height="match_parent"
             android:onClick="Ok"/>
     </LinearLayout>
-    <!--// 닫기 버튼 -->
 </LinearLayout>

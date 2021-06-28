@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import java.util.ArrayList;
 
-public class ExpandAdapter extends BaseExpandableListAdapter {
+public class ExpandAdapter extends BaseExpandableListAdapter { // 설정 창 관리하는 클래스
     private int groupLayout = 0;
     private int childLayout = 0;
     private final ArrayList<myGroup> DataList;
@@ -37,6 +37,7 @@ public class ExpandAdapter extends BaseExpandableListAdapter {
         if (convertView == null)
             convertView = inflater.inflate(this.groupLayout, parent, false);
 
+        // Child 가 있는 그룹의 경우 왼쪽에 화살표 표시
         ImageView arrow =  (ImageView) convertView.findViewById(R.id.arrow);
         if (DataList.get(groupPosition).child.size() > 0) {
             if (isExpanded)
@@ -74,6 +75,7 @@ public class ExpandAdapter extends BaseExpandableListAdapter {
         if (groupPosition == LOCK) {
             groupName.setTextColor(App.getRes().getColor(R.color.red, null));
 
+            // 현재 설정 창이 잠긴 상태인지에 따라서 결정되는 부분
             if (!isLocked) {
                 groupImage.setImageDrawable(App.getRes().getDrawable(R.drawable.unlocked_top, null));
                 groupName.setText("눌러서 잠금");
@@ -91,7 +93,7 @@ public class ExpandAdapter extends BaseExpandableListAdapter {
         TextView childName = (TextView) convertView.findViewById(R.id.childName);
         String data = DataList.get(groupPosition).child.get(childPosition);
         if (data.equals("home base"))
-            childName.setText("홈베이스");
+            childName.setText("홈베이스"); // 가독성
         else childName.setText(data);
 
         return convertView;
@@ -136,6 +138,7 @@ public class ExpandAdapter extends BaseExpandableListAdapter {
         return groupPosition;
     }
 
+    // 변수 값 조정하는 함수
     public void changeLock() {
         isLocked = !isLocked;
     }

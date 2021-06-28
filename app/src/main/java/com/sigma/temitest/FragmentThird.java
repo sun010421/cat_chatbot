@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-public class FragmentThird extends Fragment {
+public class FragmentThird extends Fragment { // 현재 사용되고 있지 않은 클래스 (이후에 페이지 추가 시 사용 가능)
 
     private MainActivity mainActivity = (MainActivity)getActivity();
 
@@ -34,69 +34,5 @@ public class FragmentThird extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-        final Button dormitory = (Button) getView().findViewById(R.id.dormitory_btn);
-        dormitory.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                mainActivity.chatInitialize("기숙사");
-            }
-        });
-
-        final Button ssai = (Button) getView().findViewById(R.id.ssai_btn);
-        ssai.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                mainActivity.chatInitialize("연합전공");
-            }
-        });
-
-        final Button doublemajor = (Button) getView().findViewById(R.id.doublemajor_btn);
-        doublemajor.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                mainActivity.chatInitialize("복수전공, 부전공");
-            }
-        });
-
-        final Button inout = (Button) getView().findViewById(R.id.inout_btn);
-        inout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                mainActivity.chatInitialize("전입, 전출");
-            }
-        });
-
-        final Button club = (Button) getView().findViewById(R.id.club_btn);
-//        club.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                mainActivity.chatInitialize("동아리");
-//            }
-//        });
-
-        final Button center = (Button) getView().findViewById(R.id.center_btn);
-        center.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                mainActivity.chatInitialize("학생 센터 위치");
-            }
-        });
-
-        final Button mentoring = (Button) getView().findViewById(R.id.mentoring_btn);
-        mentoring.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                mainActivity.chatInitialize("튜터링, 멘토링");
-            }
-        });
-
-        final Button counseling = (Button) getView().findViewById(R.id.counseling_btn);
-        counseling.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                mainActivity.chatInitialize("심리상담, 검사");
-            }
-        });
     }
 }

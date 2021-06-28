@@ -1,11 +1,8 @@
 package com.sigma.temitest;
 
-import android.content.Intent;
-import android.widget.Button;
-
 import androidx.appcompat.app.AppCompatActivity;
 
-public class ButtonNumber extends AppCompatActivity {
+public class ButtonNumber extends AppCompatActivity { // Fragment 상 버튼 관리하는 클래스
     public static final int num = 24;
 
     public static final int SCHOLARSHIP = 0;

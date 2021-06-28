@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
-public class ListActivity extends MyBaseActivity {
+public class ListActivity extends MyBaseActivity { // SettingsActivity 에서 호출되는 클래스
     ArrayList<Integer> DataList;
 
     @Override
@@ -22,7 +22,6 @@ public class ListActivity extends MyBaseActivity {
         setContentView(R.layout.list_activity);
 
         initializeData();
-
         int currentItem = getIntent().getIntExtra("currentItem", 0);
 
         ListView listView = (ListView) findViewById(R.id.listView);
@@ -32,7 +31,7 @@ public class ListActivity extends MyBaseActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView parent, View v, int position, long id) {
-                if (myAdapter.getItem(position) == currentItem) // 자기 자신은 못 누르도록
+                if (myAdapter.getItem(position) == currentItem) // 자기 자신은 못 누르도록 설정
                     return;
 
                 Intent intent = new Intent();
@@ -43,7 +42,7 @@ public class ListActivity extends MyBaseActivity {
         });
     }
 
-    public void initializeData() {
+    public void initializeData() { // (현재) 24가지 버튼 선택지의 초기화
         DataList = new ArrayList<Integer>();
         for (int i = 0; i < ButtonNumber.num; i++)
             DataList.add(i);

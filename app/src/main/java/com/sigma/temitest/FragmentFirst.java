@@ -12,8 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-public class FragmentFirst extends Fragment {
-
+public class FragmentFirst extends Fragment { // 메인 화면의 두 번째 페이지 (한국어)
     private MainActivity mainActivity = (MainActivity) getActivity();
 
     @Override
@@ -68,7 +67,5 @@ public class FragmentFirst extends Fragment {
                 startActivity(intent);
             }
         });
-
     }
-
 }

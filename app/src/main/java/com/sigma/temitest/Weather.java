@@ -11,7 +11,7 @@ import android.widget.Button;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-public class Weather extends MyBaseActivity {
+public class Weather extends MyBaseActivity { // 날씨 웹 페이지 클래스
     private WebView webView;
 
     @Override
@@ -35,8 +35,8 @@ public class Weather extends MyBaseActivity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) { //뒤로가기 버튼 이벤트
-        if ((keyCode == KeyEvent.KEYCODE_BACK) && webView.canGoBack()) { //웹뷰에서 뒤로가기 버튼을 누르면 뒤로가짐
+    public boolean onKeyDown(int keyCode, KeyEvent event) { // 뒤로 가기 버튼 이벤트
+        if ((keyCode == KeyEvent.KEYCODE_BACK) && webView.canGoBack()) { // 뒤로 가기 버튼을 누르면 메인 엑티비티로 돌아가도록 설정
             webView.goBack();
             return true;
         }

@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class myGroup {
-    public List<String> child;
     public String groupName;
+    public List<String> child;
 
     public myGroup(String name) {
         groupName = name;

@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
-public class ChangeActivity extends MyBaseActivity {
+public class ChangeActivity extends MyBaseActivity { // 커스텀 구성 버튼으로 불리는 클래스
     int[] currentIndices;
     Button checkedButton;
 
@@ -45,9 +45,9 @@ public class ChangeActivity extends MyBaseActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                MainActivity.indices = currentIndices.clone(); // 메인 화면에 반영
+                MainActivity.indices = currentIndices.clone(); // 메인 엑티비티 변수에 반영
 
-                // 백업 업데이트
+                // 버튼 구성 백업 변수를 업데이트
                 SharedPreferences prefs = getSharedPreferences(MainActivity.MY_PREFS_NAME, MODE_PRIVATE);
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putString("indices", MainActivity.intArrayToString(currentIndices, ","));
@@ -64,10 +64,9 @@ public class ChangeActivity extends MyBaseActivity {
         });
     }
 
-    // 바꾸려는 버튼이 중복된다면, 위치 바꿔치기
     public void setButtonViewDriver(Button button, int index) {
         for (int i = 0; i < currentIndices.length; i++) {
-            if (currentIndices[i] == index) {
+            if (currentIndices[i] == index) { // 바꾸려는 버튼이 중복된다면, 위치 바꿔치기
                 int viewNum = currentIndices[buttons.indexOf(button)];
                 setButtonView(button, index);
                 setButtonView(buttons.get(i), viewNum);
@@ -94,18 +93,18 @@ public class ChangeActivity extends MyBaseActivity {
             public void onClick(View view) {
                 checkedButton = button;
                 Intent intent = new Intent(ChangeActivity.this, ListActivity.class);
-                intent.putExtra("currentItem", currentIndices[buttons.indexOf(button)]); // 자기 자신은 이후에 못 선택하도록 보내줌
+                intent.putExtra("currentItem", currentIndices[buttons.indexOf(button)]); // 자기 자신은 이후에 못 선택하도록 해야 하기 때문에 그 정보를 전송
                 startActivityForResult(intent,0);
             }
         });
 
-        currentIndices[buttons.indexOf(button)] = index; // list 업데이트
+        currentIndices[buttons.indexOf(button)] = index; // 바뀐대로 변수 업데이트
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (data == null) // timeout 된 경우
+        if (data == null) // Timeout 되어 돌아온 경우
             return;
 
         Bundle b = data.getExtras();
@@ -113,4 +112,3 @@ public class ChangeActivity extends MyBaseActivity {
         setButtonViewDriver(checkedButton, index);
     }
 }
-
