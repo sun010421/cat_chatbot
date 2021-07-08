@@ -1,12 +1,8 @@
 ## SNU 전기정보공학부 행정실 안내로봇 '테미'의 챗봇 앱 개발
 
-테미 SDK 관련 링크 - https://github.com/robotemi/sdk
-
-구글 다이얼로그플로우 (챗봇 플랫폼) 관련 링크 - https://cloud.google.com/dialogflow/es/docs/quick 
-
 ### [프로젝트 원리]
 
-![image](https://user-images.githubusercontent.com/31657141/124757453-8ff93980-df68-11eb-82db-f649fcc1f4de.png)
+<img src="https://user-images.githubusercontent.com/31657141/124757453-8ff93980-df68-11eb-82db-f649fcc1f4de.png" width="800">
 
 1. 테미는 얼굴인식을 통해 다가온 사용자를 반기거나, 사용자가 먼저 대화를 시작할 수 있다.
 
@@ -45,12 +41,12 @@ Back end - 다이얼로그플로우 프로젝트 관리, Request & Response, 웹
 
 > Page1 button
 
-![image](https://user-images.githubusercontent.com/31657141/110230649-cccf0880-7f55-11eb-95ac-10b19f5ed1f4.png)
+<img src="https://user-images.githubusercontent.com/31657141/110230649-cccf0880-7f55-11eb-95ac-10b19f5ed1f4.png" width="500">
 
 
 > Page2 button
 
-![image](https://user-images.githubusercontent.com/31657141/110230651-d0628f80-7f55-11eb-86b3-a0eaf9090afd.png)
+<img src="https://user-images.githubusercontent.com/31657141/110230651-d0628f80-7f55-11eb-86b3-a0eaf9090afd.png" width="500">
 
 - 대화나 음성을 종료하고 싶으면, 대화 창의 바깥 쪽을 누른다.
 
@@ -63,21 +59,25 @@ Back end - 다이얼로그플로우 프로젝트 관리, Request & Response, 웹
 * * *
 ### [테미 관리]
 
-- 위에서 언급한 것과 같이 본 프로젝트 앱을 사용하기 위해서는 '키오스크 모드' 설정을 해야 한다.
-
-- 테미 관련 설정은 앱의 설정 창이나, 테미의 내재된 설정에서 확인 및 변경 가능하다.
-
-   (앱의 설정 창에서 내재 설정으로 들어가는 버튼이 존재한다.)
+- 테미 관련 설정은 **앱의 설정 창** 이나, 테미의 내재된 설정에서 변경 가능하다.
    
-> 앱 설정 창의 기능
+> 앱 설정 창
 
-  저장된 자리들로의 이동, 음향/조명 조절, 전원, 재시작, 위치 재설정, 설정 창 잠금 등등
+<img src="https://user-images.githubusercontent.com/31657141/124870519-d2b92100-dffd-11eb-99ac-b04e06c711cd.PNG" width="500">
+
+저장된 위치로 이동, 볼륨/조명 조절, 전원, 재시작, 위치 재조정, 설정 창 잠금 조정 등의 기능
+
+(테미의 내재된 설정은 앱 설정 창에서 '테미 설정' 을 눌러서 접근 가능하기도 하다.)
   
-  * 간혹가다 테미가 자신의 현위치를 헷갈려서 오작동을 하는 경우 - 위치 재설정을 눌러주면 된다.
+** 간혹가다 테미가 자신의 현위치를 헷갈려서 오작동을 하는 경우 - '위치 재조정'을 눌러주면 된다.
+
+** 전원, 볼륨 등의 하드 버튼은 보안을 위해 현재 이렇게 설정을 통해서만 접근할 수 있게 되어있다. 
+
+<br> 
+
+- 위에서 언급한 것과 같이 본 프로젝트 앱을 사용하기 위해서는 키오스크 모드로 설정을 해야 한다.
 
 - 자동 복귀 기능이 작동하지 않는 경우, 테미 설정을 확인하여 자동 복귀 기능과 설정 권한 창을 확인한다.
-
-- 전원, 소리, 따라가기 버튼은 보안을 위해 현재 설정을 통해서만 접근할 수 있게 되어 있다. 
 
 - 추가적인 설정은 Temi Center 에서 다룰 수 있다. (https://center.robotemi.com/)
 
@@ -112,7 +112,7 @@ Back end - 다이얼로그플로우 프로젝트 관리, Request & Response, 웹
 * * *
 ### [테미 기능]
 
-#### 다이얼로그플로우 상의 기능
+#### <다이얼로그플로우 상의 기능>
 
 - 업무에 따는 행정실 선생님 자리 안내
 
@@ -158,11 +158,11 @@ Back end - 다이얼로그플로우 프로젝트 관리, Request & Response, 웹
 
 > Page1 button
 
-![image](https://user-images.githubusercontent.com/31657141/110230750-54b51280-7f56-11eb-8dcc-2f21d3f87685.png)
+<img src="https://user-images.githubusercontent.com/31657141/110230750-54b51280-7f56-11eb-8dcc-2f21d3f87685.png" width="500">
 
 > Page2 button
 
-![image](https://user-images.githubusercontent.com/31657141/110230754-5aaaf380-7f56-11eb-90ba-ae77b8292261.png)
+<img src="https://user-images.githubusercontent.com/31657141/110230754-5aaaf380-7f56-11eb-90ba-ae77b8292261.png" width="500">
 
 <br>
 
@@ -171,18 +171,58 @@ Back end - 다이얼로그플로우 프로젝트 관리, Request & Response, 웹
    (현재 두 기기를 분리해서 사용하므로 이 기능은 사용하지 않는다. 메인 화면에 버튼이 있다.)
 
 
-#### 이외의 추가 기능
+#### <이외의 추가 기능>
 
-팝업, 웹페이지를 통한 추가 정보 제공
+- 추가 정보 제공을 위한 팝업
 
-얼굴인식, Timeout
+> 팝업 창 예시
 
-설정 창
+<img src="https://user-images.githubusercontent.com/31657141/124871147-a9e55b80-dffe-11eb-82c3-6f0bfe36ab2a.PNG" width="500">
+<img src="https://user-images.githubusercontent.com/31657141/124871161-ace04c00-dffe-11eb-8b0e-2a4922d45cca.PNG" width="500">
 
-Configurable UI, Shared preference
+- 인터넷 웹페이지 연계
 
-Wifi activity
+   (학부 홈페이지, 주요 연락처, 대학 지도, 하이퍼링크 등등)
 
+<br>
+
+- **얼굴인식**을 통한 사용자 반기기 기능
+
+- 상호작용이 끝나고 일정 시간이 지나면, 메인 화면으로 돌아가는 **Timeout** 기능
+
+<br>
+
+- **Configurable UI**
+
+   앱 설정 창의 버튼 구성을 통해서 이 기능을 사용할 수 있다.
+   
+   <img src="https://user-images.githubusercontent.com/31657141/124871762-66d7b800-dfff-11eb-98be-22cc2991ef14.PNG" width="500">
+   
+   ** 커스텀 구성: 행정실 선생님께서 원하시는 버튼으로 메인 화면을 구성할 수 있게 해줌.
+      
+   (선택할 수 있는 버튼은 총 24가지)
+   
+   <img src="https://user-images.githubusercontent.com/31657141/124872198-e82f4a80-dfff-11eb-9aba-1f6d009466fd.png" width="500">
+   
+   <img src="https://user-images.githubusercontent.com/31657141/124872301-0c8b2700-e000-11eb-82d0-90dcb81b4c09.PNG" width="500">
+   
+   <br>
+   
+   ** 인기 구성: 현재까지 가장 많이 눌린 버튼 순서대로 메인 화면을 자동 구성함 **(Shared preference)**
+   
+   ** 구성 초기화: 버튼의 눌린 횟수를 초기화하고, 메인 화면도 기본 구성으로 다시 해줌.
+
+<br>
+
+- **와이파이 연결이 끊겼을 때 알리는 alert 활동** 기능
+
+   (내부적으로 다시 행정실 와이파이에 연결하려고 시도함.)
+
+> alert 활동 창
+
+<img src="https://user-images.githubusercontent.com/31657141/124868233-71438300-dffa-11eb-84c1-77d11d71e503.png" width="500">
+
+* * *
 
 
 
