@@ -1,5 +1,7 @@
 ## SNU 전기정보공학부 행정실 안내로봇 '테미'의 챗봇 앱 개발
 
+** **참고 링크** 및 **파일 설명**은 Wiki 페이지 참고...
+
 ### [프로젝트 원리]
 
 <img src="https://user-images.githubusercontent.com/31657141/124757453-8ff93980-df68-11eb-82db-f649fcc1f4de.png" width="800">
