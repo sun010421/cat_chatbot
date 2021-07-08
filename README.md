@@ -192,6 +192,14 @@ Back end - 다이얼로그플로우 프로젝트 관리, Request & Response, 웹
 
 <br>
 
+- **와이파이 연결이 끊겼을 때 알리는 alert 활동** 기능
+
+   (내부적으로 다시 행정실 와이파이에 연결하려고 시도함.)
+
+   <img src="https://user-images.githubusercontent.com/31657141/124868233-71438300-dffa-11eb-84c1-77d11d71e503.png" width="500">
+
+<br>
+
 - **Configurable UI**
 
    앱 설정 창의 버튼 구성을 통해서 이 기능을 사용할 수 있다.
@@ -211,16 +219,6 @@ Back end - 다이얼로그플로우 프로젝트 관리, Request & Response, 웹
    ** 인기 구성: 현재까지 가장 많이 눌린 버튼 순서대로 메인 화면을 자동 구성함 **(Shared preference)**
    
    ** 구성 초기화: 버튼의 눌린 횟수를 초기화하고, 메인 화면도 기본 구성으로 다시 해줌.
-
-<br>
-
-- **와이파이 연결이 끊겼을 때 알리는 alert 활동** 기능
-
-   (내부적으로 다시 행정실 와이파이에 연결하려고 시도함.)
-
-> alert 활동 창
-
-<img src="https://user-images.githubusercontent.com/31657141/124868233-71438300-dffa-11eb-84c1-77d11d71e503.png" width="500">
 
 * * *
 
